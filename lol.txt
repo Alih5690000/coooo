@@ -1,1 +1,8 @@
-lol
+x86_64-w64-mingw32-g++ lll.cpp -std=c++17 -O2 \
+    -I./SDL2/include \
+    -L./SDL2/lib \
+    -static-libstdc++ -static-libgcc \
+    -lSDL2 -lSDL2main\
+    -mwindows \
+    -o program.exe
+

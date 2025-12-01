@@ -1,5 +1,11 @@
 #include <SDL2/SDL.h>
+#include "SDL_ttf/SDL_ttf.h"
+#include <vector>
+#include <utility>
 #include <emscripten.h>
+#include <iostream>
+
+void (*lastloop)();
 
 bool dead=false;
 SDL_Rect ima_fckin_killer{400,400,50,50};
@@ -11,26 +17,95 @@ int plr_dsh_speed=10000;
 SDL_Window* window;
 SDL_Renderer* renderer;
 
+TTF_Font* arial;
+SDL_Texture* GameOver_txt;
+
 float dt;
 float start;
 float end;
 
 bool keydownE=false;
 
-void loop(){
+bool move(SDL_Rect* rect, int targetX, int targetY, float speed, float delta) {
+    float dx = targetX - rect->x;
+    float dy = targetY - rect->y;
+    float dist = SDL_sqrtf(dx*dx + dy*dy);
+
+    if (dist < speed*delta){ 
+        rect->x=targetX;
+        rect->y=targetY;
+        return false;
+    }
+
+    dx /= dist;
+    dy /= dist;
+
+    rect->x += dx * speed * delta;
+    rect->y += dy * speed * delta;
+    return true;
+}
+
+class Enemy{
+    public:
+    SDL_Rect rect;
+    virtual void update(){};
+};
+
+class Ball : public Enemy{
+    public:
+    int speed;
+    int curr=0;
+    std::vector<std::pair<int,int>> road;
+    Ball(std::vector<std::pair<int,int>> r,int s) : road(r),speed(s){rect={0,0,50,50};}
+    void update() override{
+        if (!move(&rect,std::get<0>(road[curr]),std::get<1>(road[curr]),speed,dt))
+            curr++;
+        if (curr>=road.size())
+            curr=0;
+        SDL_SetRenderDrawColor(renderer,255,0,0,255);
+        SDL_RenderFillRect(renderer,&rect);
+    }
+};
+
+Ball l1_ball({{0,0},{300,300},{600,300}},300);
+Ball l1_ball2({{0,0},{300,0},{300,300}},300);
+Ball l1_ball3({{300,300},{300,400},{500,700}},300);
+
+std::vector<Enemy*> enemies={&l1_ball,&l1_ball2,&l1_ball3};
+
+void loop1();
+
+void GameOver(){
+    SDL_Event e;
+    while (SDL_PollEvent(&e)){
+        if (e.type==SDL_QUIT)
+            emscripten_cancel_main_loop();
+        if (e.type==SDL_KEYDOWN)
+            if (e.key.keysym.sym==SDLK_r){
+                lives=5;
+                player.x=400;
+                player.y=400;
+                dead=false;
+                emscripten_cancel_main_loop();
+                emscripten_set_main_loop(loop1,0,1);
+            }
+    }
+    SDL_SetRenderDrawColor(renderer,0,0,0,255);
+    SDL_RenderClear(renderer);
+    {
+        SDL_Rect rect{200,200,500,200};
+        SDL_RenderCopy(renderer,GameOver_txt,nullptr,&rect);
+    }
+    SDL_RenderPresent(renderer);
+}
+
+void loop1(){
     if (lives<=0){
         dead=true;
     }
     if (dead){
-        SDL_Event e;
-        while (SDL_PollEvent(&e)){
-        if (e.type==SDL_QUIT)
-            emscripten_cancel_main_loop();
-        }
-        SDL_SetRenderDrawColor(renderer,255,0,0,255);
-        SDL_RenderClear(renderer);
-        SDL_RenderPresent(renderer);
-        return;
+        emscripten_cancel_main_loop();
+        emscripten_set_main_loop(GameOver,0,1);
     }
     start=SDL_GetTicks();
     dt=(start-end)/1000.f;
@@ -62,10 +137,7 @@ void loop(){
         else
             player.x+=plr_speed*dt;
     }
-    if (SDL_HasIntersection(&ima_fckin_killer,&player) && dmg_cd==0){
-        lives--;
-        dmg_cd=2;
-    }
+    
 
     SDL_Event e;
     while (SDL_PollEvent(&e)){
@@ -79,24 +151,47 @@ void loop(){
 
     SDL_SetRenderDrawColor(renderer,0,0,0,255);
     SDL_RenderClear(renderer);
+
     if (dmg_cd==0)
     SDL_SetRenderDrawColor(renderer,0,0,255,255);
     else
     SDL_SetRenderDrawColor(renderer,255,0,255,255);
     SDL_RenderFillRect(renderer,&player);
-
-    SDL_SetRenderDrawColor(renderer,255,0,0,255);
-    SDL_RenderFillRect(renderer,&ima_fckin_killer);
+    
+    for (auto i:enemies){
+        i->update();
+        if (SDL_HasIntersection(&i->rect,&player) && dmg_cd==0){
+            lives--;
+            dmg_cd=2;
+        }
+    }
 
     SDL_RenderPresent(renderer);
 }
 
 int main(){
     SDL_Init(SDL_INIT_EVERYTHING);
+    TTF_Init();
 
     window=SDL_CreateWindow("Game",0,0,1000,800,SDL_WINDOW_SHOWN);
     renderer=SDL_CreateRenderer(window,-1,SDL_RENDERER_ACCELERATED);
+
+    arial=TTF_OpenFont("assets/arialmt.ttf",100);
+    if (!arial){
+        std::cout<<"FCK U BOZO CUDNT OPEN ARIAL"<<TTF_GetError()<<std::endl;
+        return 1;
+    }
+
+    {
+        SDL_Surface* surf=TTF_RenderText_Solid(arial,"Game Over",SDL_Color{255,255,255,255});
+        if (!surf){
+            std::cout<<"COULDNT TRANSFORM SURF"<<std::endl;
+            return 1;
+        }
+        GameOver_txt=SDL_CreateTextureFromSurface(renderer,surf);
+        SDL_FreeSurface(surf);
+    }
     
-    emscripten_set_main_loop(loop,0,1);
+    emscripten_set_main_loop(loop1,0,1);
     return 0;
 }

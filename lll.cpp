@@ -4,6 +4,7 @@
 #include <utility>
 #include <emscripten.h>
 #include <iostream>
+#include <ctime>
 
 void (*lastloop)();
 
@@ -50,6 +51,7 @@ bool move(SDL_Rect* rect, int targetX, int targetY, float speed, float delta) {
 
 class Enemy{
     public:
+    bool active=true;
     SDL_Rect rect;
     virtual void update(){};
 };
@@ -64,7 +66,7 @@ class Laser : public Enemy{
         if (!move(&rect,cords[curr],0,speed,dt))
             curr++;
         if (curr>=cords.size())
-            curr=0;
+            active=false;
         SDL_SetRenderDrawColor(renderer,255,0,0,255);
         SDL_RenderFillRect(renderer,&rect);
     }
@@ -80,7 +82,7 @@ class Ball : public Enemy{
         if (!move(&rect,std::get<0>(road[curr]),std::get<1>(road[curr]),speed,dt))
             curr++;
         if (curr>=road.size())
-            curr=0;
+            active=false;
         SDL_SetRenderDrawColor(renderer,255,0,0,255);
         SDL_RenderFillRect(renderer,&rect);
     }
@@ -180,12 +182,39 @@ void loop1(){
     else
     SDL_SetRenderDrawColor(renderer,255,0,255,255);
     SDL_RenderFillRect(renderer,&player);
-    
+    std::vector<Enemy*> real;
     for (auto i:enemies1){
+        if (i->active)
+            real.push_back(i);
+        else
+            continue;
         i->update();
         if (SDL_HasIntersection(&i->rect,&player) && dmg_cd==0){
             lives--;
             dmg_cd=2;
+        }
+    }
+    enemies1=real;
+
+    if (enemies1.size()<7){
+        int r=rand()%2;
+        std::vector<std::pair<int,int>> ra;
+        ra.resize(4);
+        for (auto& i:ra){
+            int x=(rand()%1000)+1;
+            int y=(rand()%800)+1;
+            i=std::make_pair(x,y);
+        }
+        if (r==0)
+            enemies1.push_back(new Ball(ra,200));
+        else if(r==1){
+            std::cout<<"LASER"<<std::endl;
+            std::vector<int> rr;
+            rr.resize(4);
+            for (int i=0;i<4;i++){
+                rr[i]=std::get<0>(ra[i]);
+            }
+            enemies1.push_back(new Laser(rr,200,50));
         }
     }
 
@@ -193,6 +222,9 @@ void loop1(){
 }
 
 int main(){
+
+    srand(time(NULL));
+
     SDL_Init(SDL_INIT_EVERYTHING);
     TTF_Init();
 

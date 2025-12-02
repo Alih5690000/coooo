@@ -29,26 +29,45 @@ bool keydownE=false;
 bool move(SDL_Rect* rect, int targetX, int targetY, float speed, float delta) {
     float dx = targetX - rect->x;
     float dy = targetY - rect->y;
-    float dist = SDL_sqrtf(dx*dx + dy*dy);
+    float dist = SDL_sqrtf(dx * dx + dy * dy);
 
-    if (dist < speed*delta){ 
-        rect->x=targetX;
-        rect->y=targetY;
+    if (dist < speed * delta) { 
+        rect->x = targetX;
+        rect->y = targetY;
         return false;
     }
 
-    dx /= dist;
+    dx /= dist;  // Normalize direction
     dy /= dist;
 
+    // Move by a constant speed in both directions
     rect->x += dx * speed * delta;
     rect->y += dy * speed * delta;
+
     return true;
 }
+
 
 class Enemy{
     public:
     SDL_Rect rect;
     virtual void update(){};
+};
+
+class Laser : public Enemy{
+    public:
+    int speed;
+    int curr=0;
+    std::vector<int> cords;
+    Laser(std::vector<int> cords,int s,int w):cords(cords),speed(s){rect={cords[0],0,w,2000};}
+    void update() override{
+        if (!move(&rect,cords[curr],0,speed,dt))
+            curr++;
+        if (curr>=cords.size())
+            curr=0;
+        SDL_SetRenderDrawColor(renderer,255,0,0,255);
+        SDL_RenderFillRect(renderer,&rect);
+    }
 };
 
 class Ball : public Enemy{
@@ -70,8 +89,9 @@ class Ball : public Enemy{
 Ball l1_ball({{0,0},{300,300},{600,300}},300);
 Ball l1_ball2({{0,0},{300,0},{300,300}},300);
 Ball l1_ball3({{300,300},{300,400},{500,700}},300);
+Laser l1_laser1({400,100},100,50);
 
-std::vector<Enemy*> enemies={&l1_ball,&l1_ball2,&l1_ball3};
+std::vector<Enemy*> enemies1={&l1_ball,&l1_ball2,&l1_ball3,&l1_laser1};
 
 void loop1();
 
@@ -158,7 +178,7 @@ void loop1(){
     SDL_SetRenderDrawColor(renderer,255,0,255,255);
     SDL_RenderFillRect(renderer,&player);
     
-    for (auto i:enemies){
+    for (auto i:enemies1){
         i->update();
         if (SDL_HasIntersection(&i->rect,&player) && dmg_cd==0){
             lives--;

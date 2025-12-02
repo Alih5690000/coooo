@@ -1,4 +1,1 @@
-em++ lll.cpp \
--s USE_SDL=2 -s USE_SDL_TTF=2 \
---preload-file assets@assets \
--o index.html && emrun index.html --no-browser
+Ball l1_ball4({{900,200},{800,400},{700,700}},300);

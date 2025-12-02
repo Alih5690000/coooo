@@ -89,9 +89,12 @@ class Ball : public Enemy{
 Ball l1_ball({{0,0},{300,300},{600,300}},300);
 Ball l1_ball2({{0,0},{300,0},{300,300}},300);
 Ball l1_ball3({{300,300},{300,400},{500,700}},300);
+Ball l1_ball4({{900,200},{800,400},{700,700}},300);
+Ball l1_ball5({{900,500},{800,700},{700,700}},300);
 Laser l1_laser1({400,100},100,50);
+Laser l1_laser2({600,900},100,50);
 
-std::vector<Enemy*> enemies1={&l1_ball,&l1_ball2,&l1_ball3,&l1_laser1};
+std::vector<Enemy*> enemies1={&l1_ball,&l1_ball2,&l1_ball3,&l1_ball4,&l1_laser1,&l1_laser2};
 
 void loop1();
 

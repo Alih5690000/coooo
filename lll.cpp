@@ -5,8 +5,19 @@
 #include <emscripten.h>
 #include <iostream>
 #include <ctime>
+//#define emscripten_cancel_main_loop() currloop=close
+//#define emscripten_set_main_loop(a,b,c) currloop=a
 
 void (*lastloop)();
+void (*currloop)();
+
+void loop(){
+    currloop();
+}
+
+void close(){
+    SDL_Quit();
+}
 
 bool dead=false;
 SDL_Rect ima_fckin_killer{400,400,50,50};
@@ -47,7 +58,6 @@ bool move(SDL_Rect* rect, int targetX, int targetY, float speed, float delta) {
 
     return true;
 }
-
 
 class Enemy{
     public:
@@ -139,8 +149,7 @@ void GameOver(){
                 player.x=400;
                 player.y=400;
                 dead=false;
-                emscripten_cancel_main_loop();
-                emscripten_set_main_loop(loop1,0,1);
+                currloop=loop1;;
             }
     }
     SDL_SetRenderDrawColor(renderer,0,0,0,255);
@@ -157,8 +166,7 @@ void loop1(){
         dead=true;
     }
     if (dead){
-        emscripten_cancel_main_loop();
-        emscripten_set_main_loop(GameOver,0,1);
+        currloop=GameOver;
     }
     start=SDL_GetTicks();
     dt=(start-end)/1000.f;
@@ -275,6 +283,6 @@ int main(){
         SDL_FreeSurface(surf);
     }
     
-    emscripten_set_main_loop(loop1,0,1);
+    emscripten_set_main_loop(loop,0,1);
     return 0;
 }

@@ -56,6 +56,31 @@ class Enemy{
     virtual void update(){};
 };
 
+class Sharik : public Enemy{
+    public:
+    std::vector<std::pair<int,int>> road;
+    int s,e;
+    int speed;
+    int curr=0;
+    Sharik(std::vector<std::pair<int,int>> r,int s,int e,int spee) : road(r), s(s), e(e), speed(spee){
+        rect={r[0].first,r[0].second,s,s};
+    }
+    void update() override{
+        rect.x-=speed*dt;
+        rect.y-=speed*dt;
+        rect.w+=speed*dt;
+        rect.h+=speed*dt;
+        if (curr>=road.size())
+            curr=0;
+        if (rect.w>e)
+            active=false;
+        if (!move(&rect,road[curr].first,road[curr].second,speed,dt))
+            curr++;
+        SDL_SetRenderDrawColor(renderer,255,0,0,255);
+        SDL_RenderFillRect(renderer,&rect);
+    }
+};
+
 class Laser : public Enemy{
     public:
     int speed;
@@ -72,6 +97,7 @@ class Laser : public Enemy{
     }
 };
 
+//balls
 class Ball : public Enemy{
     public:
     int speed;
@@ -88,6 +114,7 @@ class Ball : public Enemy{
     }
 };
 
+
 Ball l1_ball({{0,0},{300,300},{600,300}},300);
 Ball l1_ball2({{0,0},{300,0},{300,300}},300);
 Ball l1_ball3({{300,300},{300,400},{500,700}},300);
@@ -95,8 +122,9 @@ Ball l1_ball4({{900,200},{800,400},{700,700}},300);
 Ball l1_ball5({{900,500},{800,700},{700,700}},300);
 Laser l1_laser1({400,100},100,50);
 Laser l1_laser2({600,900},100,50);
+Sharik l1_sharik1({{500,500}},50,200,100);
 
-std::vector<Enemy*> enemies1={&l1_ball,&l1_ball2,&l1_ball3,&l1_ball4,&l1_laser1,&l1_laser2};
+std::vector<Enemy*> enemies1={&l1_ball,&l1_ball2,&l1_ball3,&l1_ball4,&l1_laser1,&l1_laser2,&l1_sharik1};
 
 void loop1();
 

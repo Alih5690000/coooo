@@ -233,7 +233,7 @@ void loop1(){
     enemies1=real;
 
     if (enemies1.size()<7){
-        int r=rand()%2;
+        int r=rand()%3;
         std::vector<std::pair<int,int>> ra;
         ra.resize(4);
         for (auto& i:ra){
@@ -244,7 +244,6 @@ void loop1(){
         if (r==0)
             enemies1.push_back(new Ball(ra,200));
         else if(r==1){
-            std::cout<<"LASER"<<std::endl;
             std::vector<int> rr;
             rr.resize(4);
             for (int i=0;i<4;i++){
@@ -252,12 +251,17 @@ void loop1(){
             }
             enemies1.push_back(new Laser(rr,200,50));
         }
+        else if (r==2){
+            enemies1.push_back(new Sharik(ra,50,150,200));
+        }
     }
 
     SDL_RenderPresent(renderer);
 }
 
 int main(){
+
+    currloop=loop1;
 
     srand(time(NULL));
 

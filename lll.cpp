@@ -41,7 +41,8 @@ float dt;
 float start;
 float end;
 
-bool keydownE=false;
+bool keydownDASH=false;
+SDL_Scancode dashBut=SDL_SCANCODE_E;
 
 bool move(SDL_Rect* rect, int targetX, int targetY, float speed, float delta) {
     float dx = targetX - rect->x;
@@ -243,39 +244,48 @@ void loop1(){
     if (dmg_cd<0) dmg_cd=0;
     const Uint8* keys=SDL_GetKeyboardState(NULL);
     if (keys[SDL_SCANCODE_W]){
-        if (keys[SDL_SCANCODE_E] && !(keydownE))
+        if (keys[dashBut] && !(keydownDASH))
             player.y-=plr_dsh_speed*dt;
         else
             player.y-=plr_speed*dt;
     }
     if (keys[SDL_SCANCODE_S]){
-        if (keys[SDL_SCANCODE_E] && !(keydownE))
+        if (keys[dashBut] && !(keydownDASH))
             player.y+=plr_dsh_speed*dt;
         else
             player.y+=plr_speed*dt;
     }
     if (keys[SDL_SCANCODE_A]){
-        if (keys[SDL_SCANCODE_E] && !(keydownE))
+        if (keys[dashBut] && !(keydownDASH))
             player.x-=plr_dsh_speed*dt;
         else
             player.x-=plr_speed*dt;
     }
     if (keys[SDL_SCANCODE_D]){
-        if (keys[SDL_SCANCODE_E] && !(keydownE))
+        if (keys[dashBut] && !(keydownDASH))
             player.x+=plr_dsh_speed*dt;
         else
             player.x+=plr_speed*dt;
     }
     
+    if (player.x>1000-player.w)
+        player.x=1000-player.w;
+    if (player.x<0)
+        player.x=0;
+
+    if (player.y>800-player.h)
+        player.y=800-player.h;
+    if (player.y<0)
+        player.y=0;
 
     SDL_Event e;
     while (SDL_PollEvent(&e)){
         if (e.type==SDL_QUIT)
             emscripten_cancel_main_loop();
-        if (e.type==SDL_KEYDOWN && e.key.keysym.sym==SDLK_e)
-            keydownE=true;
-        if (e.type==SDL_KEYUP && e.key.keysym.sym==SDLK_e)
-            keydownE=false;
+        if (e.type==SDL_KEYDOWN && e.key.keysym.sym==SDL_SCANCODE_TO_KEYCODE(dashBut))
+            keydownDASH=true;
+        if (e.type==SDL_KEYUP && e.key.keysym.sym==SDL_SCANCODE_TO_KEYCODE(dashBut))
+            keydownDASH=false;
     }
 
     SDL_SetRenderDrawColor(renderer,0,0,0,255);

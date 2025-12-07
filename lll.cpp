@@ -1,12 +1,17 @@
 #include <SDL2/SDL.h>
-#include "SDL_ttf/SDL_ttf.h"
+#include <SDL2/SDL_ttf.h>
 #include <vector>
 #include <utility>
 #include <emscripten.h>
 #include <iostream>
 #include <ctime>
+#include <sstream>
 //#define emscripten_cancel_main_loop() currloop=close
 //#define emscripten_set_main_loop(a,b,c) currloop=a
+
+//MY HANDS SHALL RELISH ENDING YOU HERER AND KNOW!!!!
+//1 minute later
+//is that my blood?..
 
 void (*lastloop)();
 void (*currloop)();
@@ -64,6 +69,7 @@ class Enemy{
     bool active=true;
     SDL_Rect rect;
     virtual void update(){};
+    virtual ~Enemy()=default;
 };
 
 class Sharik : public Enemy{
@@ -125,16 +131,52 @@ class Ball : public Enemy{
 };
 
 
-Ball l1_ball({{0,0},{300,300},{600,300}},300);
-Ball l1_ball2({{0,0},{300,0},{300,300}},300);
-Ball l1_ball3({{300,300},{300,400},{500,700}},300);
-Ball l1_ball4({{900,200},{800,400},{700,700}},300);
-Ball l1_ball5({{900,500},{800,700},{700,700}},300);
-Laser l1_laser1({400,100},100,50);
-Laser l1_laser2({600,900},100,50);
-Sharik l1_sharik1({{500,500}},50,200,100);
 
-std::vector<Enemy*> enemies1={&l1_ball,&l1_ball2,&l1_ball3,&l1_ball4,&l1_laser1,&l1_laser2,&l1_sharik1};
+void Parse(std::string list,std::vector<Enemy*>* ens){
+    std::vector<std::string> tokens;
+    std::stringstream stream(list);
+    std::string temp;
+    while (stream>>temp){
+        tokens.push_back(temp);
+    }
+    for (int i=0;i<tokens.size();i++){
+        auto token=tokens[i];
+        std::cout<<token<<" no "<<i<<std::endl;
+        if (token=="SHARIK"){
+            std::vector<std::pair<int,int>> path;
+            int start,end,speed;
+            i++;
+            if (tokens[i]!="START")
+                throw std::runtime_error("Invalid syntax (no START)");
+            i++;
+            while(true){
+                if (tokens[i]=="END")
+                    break;
+                if (i>=tokens.size())
+                    throw std::runtime_error("START unclosed");
+                path.push_back(std::make_pair(std::stoi(tokens[i]),std::stoi(tokens[i+1])));
+                i+=2;
+            }
+            i++;
+            start=std::stoi(tokens[i]);
+            end=std::stoi(tokens[i+1]);
+            speed=std::stoi(tokens[i+2]);
+            ens->push_back(new Sharik(path,start,end,speed));
+            i+=3;
+        }
+    }
+}
+
+Ball* l1_ball=new Ball({{0,0},{300,300},{600,300}},300);
+Ball* l1_ball2=new Ball({{0,0},{300,0},{300,300}},300);
+Ball* l1_ball3=new Ball({{300,300},{300,400},{500,700}},300);
+Ball* l1_ball4=new Ball({{900,200},{800,400},{700,700}},300);
+Ball* l1_ball5=new Ball({{900,500},{800,700},{700,700}},300);
+Laser* l1_laser1=new Laser({400,100},100,50);
+Laser* l1_laser2=new Laser({600,900},100,50);
+Sharik* l1_sharik1=new Sharik({{500,500}},50,200,100);
+
+std::vector<Enemy*> enemies1={l1_ball,l1_ball2,l1_ball3,l1_ball4,l1_laser1,l1_laser2,l1_sharik1};
 
 void loop1();
 
@@ -161,6 +203,28 @@ void GameOver(){
     SDL_RenderPresent(renderer);
 }
 
+std::vector<std::string> coms={"SHARIK START 100 100 200 200 END 50 100 100","1000","SHARIK START 400 400 500 600 END 20 100 40"};
+
+int curr_interval=0;
+int last_time=0;
+int at=0;
+
+
+void HandleList(){
+    if (start-last_time>curr_interval){
+        if (at<coms.size()){
+            if (at%1==0 && at!=0){
+                curr_interval=std::stoi(coms[at]);
+                last_time=start;
+            }
+            else{
+                Parse(coms[at],&enemies1);
+                at++;
+            }
+        }
+    }
+}
+
 void loop1(){
     if (lives<=0){
         dead=true;
@@ -168,9 +232,13 @@ void loop1(){
     if (dead){
         currloop=GameOver;
     }
+
     start=SDL_GetTicks();
     dt=(start-end)/1000.f;
     end=start;
+
+    HandleList();
+
     if (dmg_cd>0) dmg_cd-=dt;
     if (dmg_cd<0) dmg_cd=0;
     const Uint8* keys=SDL_GetKeyboardState(NULL);
@@ -222,8 +290,10 @@ void loop1(){
     for (auto i:enemies1){
         if (i->active)
             real.push_back(i);
-        else
+        else{
+            delete i;
             continue;
+        }
         i->update();
         if (SDL_HasIntersection(&i->rect,&player) && dmg_cd==0){
             lives--;

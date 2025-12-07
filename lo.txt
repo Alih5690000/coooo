@@ -1,0 +1,9 @@
+if (tokens[i]=="START"){
+            std::vector<std::pair<int,int>> path;
+            while (true){
+                if (tokens[i]=="END")
+                    break;
+                
+                i+=2;
+            }
+        }

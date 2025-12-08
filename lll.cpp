@@ -9,7 +9,7 @@
 //#define emscripten_cancel_main_loop() currloop=close
 //#define emscripten_set_main_loop(a,b,c) currloop=a
 
-//MY HANDS SHALL RELISH ENDING YOU HERER AND KNOW!!!!
+//MY HANDS SHALL RELISH ENDING YOU HERE AND KNOW!!!!
 //1 minute later
 //is that my blood?..
 
@@ -165,6 +165,46 @@ void Parse(std::string list,std::vector<Enemy*>* ens){
             ens->push_back(new Sharik(path,start,end,speed));
             i+=3;
         }
+        else if (token=="BALL"){
+            std::vector<std::pair<int,int>> path;
+            int speed;
+            i++;
+            if (tokens[i]!="START")
+                throw std::runtime_error("Invalid syntax (no START)");
+            i++;
+            while(true){
+                if (tokens[i]=="END")
+                    break;
+                if (i>=tokens.size())
+                    throw std::runtime_error("START unclosed");
+                path.push_back(std::make_pair(std::stoi(tokens[i]),std::stoi(tokens[i+1])));
+                i+=2;
+            }
+            i++;
+            speed=std::stoi(tokens[i]);
+            ens->push_back(new Ball(path,speed));
+        }
+        else if (token=="LASER"){
+            std::vector<int> path;
+            int speed,width;
+            i++;
+            if (tokens[i]!="START")
+                throw std::runtime_error("Invalid syntax (no START)");
+            i++;
+            while(true){
+                if (tokens[i]=="END")
+                    break;
+                if (i>=tokens.size())
+                    throw std::runtime_error("START unclosed");
+                path.push_back(std::stoi(tokens[i]));
+                i++;
+            }
+            i++;
+            speed=std::stoi(tokens[i]);
+            width=std::stoi(tokens[i+1]);
+            ens->push_back(new Laser(path,speed,width));
+            i++;
+        }
     }
 }
 
@@ -204,7 +244,12 @@ void GameOver(){
     SDL_RenderPresent(renderer);
 }
 
-std::vector<std::string> coms={"SHARIK START 100 100 200 200 END 50 100 100","1000","SHARIK START 400 400 500 600 END 20 100 40"};
+std::vector<std::string> coms={
+    "SHARIK START 100 100 200 200 END 50 100 100",
+    "1000",
+    "SHARIK START 400 400 500 600 END 20 100 100","2000",
+    "BALL START 300 400 500 600 END 200"
+};
 
 int curr_interval=0;
 int last_time=0;
@@ -214,14 +259,15 @@ int at=0;
 void HandleList(){
     if (start-last_time>curr_interval){
         if (at<coms.size()){
-            if (at%1==0 && at!=0){
+            std::cout<<"AT: "<<at<<std::endl;
+            if (at%2==1 && at!=0){
                 curr_interval=std::stoi(coms[at]);
                 last_time=start;
             }
             else{
-                Parse(coms[at],&enemies1);
-                at++;
+                Parse(coms[at],&enemies1);;
             }
+            at++;
         }
     }
 }
@@ -243,6 +289,7 @@ void loop1(){
     if (dmg_cd>0) dmg_cd-=dt;
     if (dmg_cd<0) dmg_cd=0;
     const Uint8* keys=SDL_GetKeyboardState(NULL);
+
     if (keys[SDL_SCANCODE_W]){
         if (keys[dashBut] && !(keydownDASH))
             player.y-=plr_dsh_speed*dt;
@@ -267,6 +314,12 @@ void loop1(){
         else
             player.x+=plr_speed*dt;
     }
+
+    if (keys[dashBut])
+        keydownDASH=true;
+    else
+        keydownDASH=false;
+
     
     if (player.x>1000-player.w)
         player.x=1000-player.w;
@@ -282,10 +335,6 @@ void loop1(){
     while (SDL_PollEvent(&e)){
         if (e.type==SDL_QUIT)
             emscripten_cancel_main_loop();
-        if (e.type==SDL_KEYDOWN && e.key.keysym.sym==SDL_SCANCODE_TO_KEYCODE(dashBut))
-            keydownDASH=true;
-        if (e.type==SDL_KEYUP && e.key.keysym.sym==SDL_SCANCODE_TO_KEYCODE(dashBut))
-            keydownDASH=false;
     }
 
     SDL_SetRenderDrawColor(renderer,0,0,0,255);
@@ -312,6 +361,7 @@ void loop1(){
     }
     enemies1=real;
 
+    /*
     if (enemies1.size()<7){
         int r=rand()%3;
         std::vector<std::pair<int,int>> ra;
@@ -335,6 +385,7 @@ void loop1(){
             enemies1.push_back(new Sharik(ra,50,150,200));
         }
     }
+    */
 
     SDL_RenderPresent(renderer);
 }

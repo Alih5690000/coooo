@@ -120,7 +120,7 @@ class Ball : public Enemy{
     int speed;
     int curr=0;
     std::vector<std::pair<int,int>> road;
-    Ball(std::vector<std::pair<int,int>> r,int s) : road(r),speed(s){rect={0,0,50,50};}
+    Ball(std::vector<std::pair<int,int>> r,int s) : road(r),speed(s){rect={road[0].first,road[0].second,50,50};}
     void update() override{
         if (!move(&rect,std::get<0>(road[curr]),std::get<1>(road[curr]),speed,dt))
             curr++;
@@ -159,6 +159,8 @@ void Parse(std::string list,std::vector<Enemy*>* ens){
                 i+=2;
             }
             i++;
+            if (tokens.size()<=i+2)
+                throw std::runtime_error("too few arguments");
             start=std::stoi(tokens[i]);
             end=std::stoi(tokens[i+1]);
             speed=std::stoi(tokens[i+2]);
@@ -181,6 +183,8 @@ void Parse(std::string list,std::vector<Enemy*>* ens){
                 i+=2;
             }
             i++;
+            if (tokens.size()<=i)
+                throw std::runtime_error("too few arguments");
             speed=std::stoi(tokens[i]);
             ens->push_back(new Ball(path,speed));
         }
@@ -200,6 +204,8 @@ void Parse(std::string list,std::vector<Enemy*>* ens){
                 i++;
             }
             i++;
+            if (tokens.size()<=i+1)
+                throw std::runtime_error("too few arguments");
             speed=std::stoi(tokens[i]);
             width=std::stoi(tokens[i+1]);
             ens->push_back(new Laser(path,speed,width));
@@ -217,7 +223,7 @@ Laser* l1_laser1=new Laser({400,100},100,50);
 Laser* l1_laser2=new Laser({600,900},100,50);
 Sharik* l1_sharik1=new Sharik({{500,500}},50,200,100);
 
-std::vector<Enemy*> enemies1={l1_ball,l1_ball2,l1_ball3,l1_ball4,l1_laser1,l1_laser2,l1_sharik1};
+std::vector<Enemy*> enemies1;//={l1_ball,l1_ball2,l1_ball3,l1_ball4,l1_laser1,l1_laser2,l1_sharik1};
 
 void loop1();
 
@@ -245,10 +251,17 @@ void GameOver(){
 }
 
 std::vector<std::string> coms={
-    "SHARIK START 100 100 200 200 END 50 100 100",
-    "1000",
-    "SHARIK START 400 400 500 600 END 20 100 100","2000",
-    "BALL START 300 400 500 600 END 200"
+    "BALL START 1000 400 500 400 END 300",
+    "500",
+    "BALL START 1000 200 500 200 END 200",
+    "500",
+    "BALL START 1000 600 500 600 END 400",
+    "250",
+    "BALL START 1000 100 500 100 END 200",
+    "500",
+    "BALL START 1000 300 500 300 END 150",
+    "500",
+    "BALL START 1000 300 500 300 END 150"
 };
 
 int curr_interval=0;

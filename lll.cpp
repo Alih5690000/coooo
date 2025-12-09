@@ -6,6 +6,8 @@
 #include <iostream>
 #include <ctime>
 #include <sstream>
+#include <map>
+#include <any>
 //#define emscripten_cancel_main_loop() currloop=close
 //#define emscripten_set_main_loop(a,b,c) currloop=a
 
@@ -131,7 +133,38 @@ class Ball : public Enemy{
     }
 };
 
+class Spike : public Enemy{
+    public:
+    float livetime;
+    Spike(SDL_Rect r){
+        livetime=0.f;
+        rect=r;
+    }
+    void update() override{
+        if (livetime>=3.f)
+            active=false;
+        livetime+=dt;
+        SDL_SetRenderDrawColor(renderer,255,0,0,255);
+        SDL_RenderFillRect(renderer,&rect);
+    }
+};
 
+class Custom : public Enemy{
+    public:
+    std::map<std::string,std::any> vars;
+    std::vector<int> path;
+    int speed;
+    int pause;
+    void (*updatefunc)(Custom*);
+    Custom(SDL_Rect r,void (*u)(Custom*),void (*c)(Custom*)){
+        updatefunc=u;
+        rect=r;
+        c(this);
+    }
+    void update() override{
+        updatefunc(this);
+    }
+};
 
 void Parse(std::string list,std::vector<Enemy*>* ens){
     std::vector<std::string> tokens;
@@ -142,7 +175,6 @@ void Parse(std::string list,std::vector<Enemy*>* ens){
     }
     for (int i=0;i<tokens.size();i++){
         auto token=tokens[i];
-        std::cout<<token<<" no "<<i<<std::endl;
         if (token=="SHARIK"){
             std::vector<std::pair<int,int>> path;
             int start,end,speed;
@@ -211,6 +243,18 @@ void Parse(std::string list,std::vector<Enemy*>* ens){
             ens->push_back(new Laser(path,speed,width));
             i++;
         }
+        else if (token=="SPIKE"){
+            int x,y,w,h;
+            i++;
+            x=std::stoi(tokens[i]);
+            i++;
+            y=std::stoi(tokens[i]);
+            i++;
+            w=std::stoi(tokens[i]);
+            i++;
+            h=std::stoi(tokens[i]);
+            ens->push_back(new Spike({x,y,w,h}));
+        }
     }
 }
 
@@ -222,8 +266,10 @@ Ball* l1_ball5=new Ball({{900,500},{800,700},{700,700}},300);
 Laser* l1_laser1=new Laser({400,100},100,50);
 Laser* l1_laser2=new Laser({600,900},100,50);
 Sharik* l1_sharik1=new Sharik({{500,500}},50,200,100);
+Spike* l1_spike=new Spike({500,200,100,2000});
 
-std::vector<Enemy*> enemies1;//={l1_ball,l1_ball2,l1_ball3,l1_ball4,l1_laser1,l1_laser2,l1_sharik1};
+std::vector<Enemy*> enemies1={l1_spike};
+//={l1_ball,l1_ball2,l1_ball3,l1_ball4,l1_laser1,l1_laser2,l1_sharik1};
 
 void loop1();
 
@@ -253,14 +299,46 @@ void GameOver(){
 std::vector<std::string> coms={
     "BALL START 1000 400 500 400 END 300",
     "500",
+
     "BALL START 1000 200 500 200 END 200",
+    "0",
+    "SPIKE 200 500 50 2000",
     "500",
+
     "BALL START 1000 600 500 600 END 400",
+    "0",
+    "LASER START 100 500 END 200 75",
     "250",
+
     "BALL START 1000 100 500 100 END 200",
     "500",
+
     "BALL START 1000 300 500 300 END 150",
     "500",
+
+    "BALL START 1000 300 500 300 END 150",
+
+    "100",
+
+    "BALL START 1000 400 500 400 END 300",
+    "500",
+
+    "BALL START 1000 200 500 200 END 200",
+    "0",
+    "SPIKE 200 500 50 2000",
+    "500",
+
+    "BALL START 1000 600 500 600 END 400",
+    "0",
+    "LASER START 100 500 END 200 75",
+    "250",
+
+    "BALL START 1000 100 500 100 END 200",
+    "500",
+
+    "BALL START 1000 300 500 300 END 150",
+    "500",
+
     "BALL START 1000 300 500 300 END 150"
 };
 
@@ -272,7 +350,6 @@ int at=0;
 void HandleList(){
     if (start-last_time>curr_interval){
         if (at<coms.size()){
-            std::cout<<"AT: "<<at<<std::endl;
             if (at%2==1 && at!=0){
                 curr_interval=std::stoi(coms[at]);
                 last_time=start;

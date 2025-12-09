@@ -67,6 +67,13 @@ bool move(SDL_Rect* rect, int targetX, int targetY, float speed, float delta) {
     return true;
 }
 
+template <typename T>
+std::string to_str(T a){
+    std::stringstream s;
+    s<<a;
+    return s.str();
+}
+
 class Enemy{
     public:
     bool active=true;

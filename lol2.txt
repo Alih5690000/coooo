@@ -1,4 +1,5 @@
 em++ lll.cpp \
--s USE_SDL=2 -s USE_SDL_TTF=2 \
+-s USE_SDL=2 -s USE_SDL_TTF=2 -s USE_SDL_MIXER=2\
+-s SDL_MIXER_FORMATS=['mp3'] \
 --preload-file assets@assets \
 -o index.html && emrun index.html --no-browser

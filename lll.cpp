@@ -360,13 +360,18 @@ std::vector<std::string> coms={
     "250",
 
     "BALL START 900 100 500 100 END 200",
+    "0",
+    "LASER START 0 400 END 200 100",
     "500",
 
     "BALL START 900 300 500 300 END 150",
+    "0",
+    "LASER START 300 700 END 200 100",
     "500",
 
     "BALL START 900 300 500 300 END 150",
-
+    "0",
+    "LASER START 400 100 END 200 100",
     "100",
 
     "BALL START 900 400 500 400 END 300",

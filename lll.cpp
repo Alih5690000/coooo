@@ -40,7 +40,7 @@ SDL_Renderer* renderer;
 
 TTF_Font* arial;
 SDL_Texture* GameOver_txt;
-Mix_Music* l1_mus1;
+Mix_Chunk* l1_mus1;
 
 float dt;
 float start;
@@ -510,7 +510,7 @@ void loop1(){
     enemies1=real;
     if (!l1_isMusicPlaying)
         if (enemies1[0]->isDamaging){
-            Mix_PlayMusic(l1_mus1,0);
+            Mix_PlayChannel(-1,l1_mus1,0);
             l1_isMusicPlaying=true;
         }
 
@@ -551,8 +551,11 @@ int main(){
 
     SDL_Init(SDL_INIT_EVERYTHING);
     TTF_Init();
-    Mix_Init(MIX_INIT_OGG);
+    Mix_Init(MIX_INIT_MP3 | MIX_INIT_OGG);
 
+    if (Mix_OpenAudio(44100,MIX_DEFAULT_FORMAT,2,2048)==-1){
+        std::cout<<"ERROR OF AUDIO:"<<Mix_GetError()<<std::endl;
+    }
 
     window=SDL_CreateWindow("Game",0,0,1000,800,SDL_WINDOW_SHOWN);
     renderer=SDL_CreateRenderer(window,-1,SDL_RENDERER_ACCELERATED);
@@ -571,7 +574,8 @@ int main(){
         GameOver_txt=SDL_CreateTextureFromSurface(renderer,surf);
         SDL_FreeSurface(surf);
     }
-    l1_mus1=Mix_LoadMUS("assets/corrupted.ogg");
+
+    l1_mus1=Mix_LoadWAV("assets/corrupted.mp3");
     if (!l1_mus1){
         std::cout<<"COULDNT LOAD MUSIC CAUSE:"<<Mix_GetError()<<std::endl;
         return 1;

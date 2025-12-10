@@ -1,5 +1,6 @@
 em++ lll.cpp \
 -s USE_SDL=2 -s USE_SDL_TTF=2 -s USE_SDL_MIXER=2 \
--s SDL2_MIXER_FORMATS="['ogg']" \
+-s SDL2_MIXER_FORMATS='["mp3","ogg","wav"]' \
 --preload-file assets@assets \
+-s ALLOW_MEMORY_GROWTH=1 \
 -o index.html && emrun index.html --no-browser

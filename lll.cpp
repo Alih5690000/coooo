@@ -1,5 +1,6 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_ttf.h>
+#include <SDL2/SDL_mixer.h>
 #include <vector>
 #include <utility>
 #include <emscripten.h>
@@ -39,6 +40,7 @@ SDL_Renderer* renderer;
 
 TTF_Font* arial;
 SDL_Texture* GameOver_txt;
+Mix_Music* l1_mus1;
 
 float dt;
 float start;
@@ -416,6 +418,8 @@ void HandleList(){
     }
 }
 
+
+bool l1_isMusicPlaying=false;
 void loop1(){
     if (lives<=0){
         dead=true;
@@ -504,6 +508,11 @@ void loop1(){
         }
     }
     enemies1=real;
+    if (!l1_isMusicPlaying)
+        if (enemies1[0]->isDamaging){
+            Mix_PlayMusic(l1_mus1,0);
+            l1_isMusicPlaying=true;
+        }
 
     /*
     if (enemies1.size()<7){
@@ -542,6 +551,8 @@ int main(){
 
     SDL_Init(SDL_INIT_EVERYTHING);
     TTF_Init();
+    Mix_Init(MIX_INIT_OGG);
+
 
     window=SDL_CreateWindow("Game",0,0,1000,800,SDL_WINDOW_SHOWN);
     renderer=SDL_CreateRenderer(window,-1,SDL_RENDERER_ACCELERATED);
@@ -551,7 +562,6 @@ int main(){
         std::cout<<"FCK U BOZO CUDNT OPEN ARIAL"<<TTF_GetError()<<std::endl;
         return 1;
     }
-
     {
         SDL_Surface* surf=TTF_RenderText_Solid(arial,"Game Over",SDL_Color{255,255,255,255});
         if (!surf){
@@ -560,6 +570,11 @@ int main(){
         }
         GameOver_txt=SDL_CreateTextureFromSurface(renderer,surf);
         SDL_FreeSurface(surf);
+    }
+    l1_mus1=Mix_LoadMUS("assets/corrupted.ogg");
+    if (!l1_mus1){
+        std::cout<<"COULDNT LOAD MUSIC CAUSE:"<<Mix_GetError()<<std::endl;
+        return 1;
     }
     
     emscripten_set_main_loop(loop,0,1);

@@ -8,6 +8,7 @@
 #include <sstream>
 #include <map>
 #include <any>
+#define WAIT_TIME 1000
 //#define emscripten_cancel_main_loop() currloop=close
 //#define emscripten_set_main_loop(a,b,c) currloop=a
 
@@ -77,6 +78,7 @@ std::string to_str(T a){
 class Enemy{
     public:
     bool active=true;
+    bool isDamaging=false;
     SDL_Rect rect;
     virtual void update(){};
     virtual ~Enemy()=default;
@@ -88,10 +90,19 @@ class Sharik : public Enemy{
     int s,e;
     int speed;
     int curr=0;
+    int warning_since=0;
     Sharik(std::vector<std::pair<int,int>> r,int s,int e,int spee) : road(r), s(s), e(e), speed(spee){
         rect={r[0].first,r[0].second,s,s};
+        warning_since=start;
     }
     void update() override{
+        if (start-warning_since>WAIT_TIME)
+            isDamaging=true;
+        if (!isDamaging){
+            SDL_SetRenderDrawColor(renderer,155,0,0,255);
+            SDL_RenderFillRect(renderer,&rect);
+            return;
+        }
         rect.x-=speed*dt;
         rect.y-=speed*dt;
         rect.w+=speed*dt;
@@ -111,9 +122,20 @@ class Laser : public Enemy{
     public:
     int speed;
     int curr=0;
+    int warning_since=0;
     std::vector<int> cords;
-    Laser(std::vector<int> cords,int s,int w):cords(cords),speed(s){rect={cords[0],0,w,2000};}
+    Laser(std::vector<int> cords,int s,int w):cords(cords),speed(s){
+        rect={cords[0],0,w,2000};
+        warning_since=start;
+    }
     void update() override{
+        if (start-warning_since>WAIT_TIME)
+            isDamaging=true;
+        if (!isDamaging){
+            SDL_SetRenderDrawColor(renderer,155,0,0,255);
+            SDL_RenderFillRect(renderer,&rect);
+            return;
+        }
         if (!move(&rect,cords[curr],0,speed,dt))
             curr++;
         if (curr>=cords.size())
@@ -128,9 +150,20 @@ class Ball : public Enemy{
     public:
     int speed;
     int curr=0;
+    int warning_since=0;
     std::vector<std::pair<int,int>> road;
-    Ball(std::vector<std::pair<int,int>> r,int s) : road(r),speed(s){rect={road[0].first,road[0].second,50,50};}
+    Ball(std::vector<std::pair<int,int>> r,int s) : road(r),speed(s){
+        rect={road[0].first,road[0].second,50,50};
+        warning_since=start;
+    }
     void update() override{
+        if (start-warning_since>WAIT_TIME)
+            isDamaging=true;
+        if (!isDamaging){
+            SDL_SetRenderDrawColor(renderer,155,0,0,255);
+            SDL_RenderFillRect(renderer,&rect);
+            return;
+        }
         if (!move(&rect,std::get<0>(road[curr]),std::get<1>(road[curr]),speed,dt))
             curr++;
         if (curr>=road.size())
@@ -143,11 +176,20 @@ class Ball : public Enemy{
 class Spike : public Enemy{
     public:
     float livetime;
+    int warning_since=0;
     Spike(SDL_Rect r){
         livetime=0.f;
         rect=r;
+        warning_since=start;
     }
     void update() override{
+        if (start-warning_since>WAIT_TIME)
+            isDamaging=true;
+        if (!isDamaging){
+            SDL_SetRenderDrawColor(renderer,155,0,0,255);
+            SDL_RenderFillRect(renderer,&rect);
+            return;
+        }
         if (livetime>=3.f)
             active=false;
         livetime+=dt;
@@ -304,49 +346,49 @@ void GameOver(){
 }
 
 std::vector<std::string> coms={
-    "BALL START 1000 400 500 400 END 300",
+    "BALL START 900 400 500 400 END 300",
     "500",
 
-    "BALL START 1000 200 500 200 END 200",
+    "BALL START 900 200 500 200 END 200",
     "0",
     "SPIKE 200 500 50 2000",
     "500",
 
-    "BALL START 1000 600 500 600 END 400",
+    "BALL START 900 600 500 600 END 400",
     "0",
     "LASER START 100 500 END 200 75",
     "250",
 
-    "BALL START 1000 100 500 100 END 200",
+    "BALL START 900 100 500 100 END 200",
     "500",
 
-    "BALL START 1000 300 500 300 END 150",
+    "BALL START 900 300 500 300 END 150",
     "500",
 
-    "BALL START 1000 300 500 300 END 150",
+    "BALL START 900 300 500 300 END 150",
 
     "100",
 
-    "BALL START 1000 400 500 400 END 300",
+    "BALL START 900 400 500 400 END 300",
     "500",
 
-    "BALL START 1000 200 500 200 END 200",
+    "BALL START 900 200 500 200 END 200",
     "0",
     "SPIKE 200 500 50 2000",
     "500",
 
-    "BALL START 1000 600 500 600 END 400",
+    "BALL START 900 600 500 600 END 400",
     "0",
     "LASER START 100 500 END 200 75",
     "250",
 
-    "BALL START 1000 100 500 100 END 200",
+    "BALL START 900 100 500 100 END 200",
     "500",
 
-    "BALL START 1000 300 500 300 END 150",
+    "BALL START 900 300 500 300 END 150",
     "500",
 
-    "BALL START 1000 300 500 300 END 150"
+    "BALL START 900 300 500 300 END 150"
 };
 
 int curr_interval=0;
@@ -451,7 +493,7 @@ void loop1(){
             continue;
         }
         i->update();
-        if (SDL_HasIntersection(&i->rect,&player) && dmg_cd==0){
+        if (SDL_HasIntersection(&i->rect,&player) && dmg_cd==0 && i->isDamaging){
             lives--;
             dmg_cd=2;
         }

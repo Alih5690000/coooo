@@ -348,6 +348,8 @@ void GameOver(){
 }
 
 std::vector<std::string> coms={
+    "",
+    "100",
     "BALL START 900 400 500 400 END 300",
     "500",
 
@@ -418,8 +420,6 @@ void HandleList(){
     }
 }
 
-
-bool l1_isMusicPlaying=false;
 void loop1(){
     if (lives<=0){
         dead=true;
@@ -508,12 +508,7 @@ void loop1(){
         }
     }
     enemies1=real;
-    if (!l1_isMusicPlaying)
-        if (enemies1[0]->isDamaging){
-            Mix_PlayChannel(-1,l1_mus1,0);
-            l1_isMusicPlaying=true;
-        }
-
+    
     /*
     if (enemies1.size()<7){
         int r=rand()%3;
@@ -581,6 +576,8 @@ int main(){
         return 1;
     }
     
+
+    Mix_PlayChannel(-1,l1_mus1,0);
     emscripten_set_main_loop(loop,0,1);
     return 0;
 }

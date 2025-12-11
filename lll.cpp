@@ -40,7 +40,7 @@ SDL_Renderer* renderer;
 
 TTF_Font* arial;
 SDL_Texture* GameOver_txt;
-Mix_Chunk* l1_mus1;
+Mix_Music* l1_mus1;
 
 float dt;
 float start;
@@ -568,14 +568,14 @@ int main(){
         SDL_FreeSurface(surf);
     }
 
-    l1_mus1=Mix_LoadWAV("assets/corrupted.mp3");
+    l1_mus1=Mix_LoadMUS("assets/corrupted.mp3");
     if (!l1_mus1){
         std::cout<<"COULDNT LOAD MUSIC CAUSE:"<<Mix_GetError()<<std::endl;
         return 1;
     }
     
 
-    Mix_PlayChannel(-1,l1_mus1,0);
+    Mix_PlayMusic(l1_mus1,0);
     emscripten_set_main_loop(loop,0,1);
     return 0;
 }

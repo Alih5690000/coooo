@@ -101,7 +101,7 @@ class Sharik : public Enemy{
         if (start-warning_since>WAIT_TIME)
             isDamaging=true;
         if (!isDamaging){
-            SDL_SetRenderDrawColor(renderer,155,0,0,255);
+            SDL_SetRenderDrawColor(renderer,255,0,0,155);
             SDL_RenderFillRect(renderer,&rect);
             return;
         }
@@ -134,7 +134,7 @@ class Laser : public Enemy{
         if (start-warning_since>WAIT_TIME)
             isDamaging=true;
         if (!isDamaging){
-            SDL_SetRenderDrawColor(renderer,155,0,0,255);
+            SDL_SetRenderDrawColor(renderer,255,0,0,155);
             SDL_RenderFillRect(renderer,&rect);
             return;
         }
@@ -162,7 +162,7 @@ class Ball : public Enemy{
         if (start-warning_since>WAIT_TIME)
             isDamaging=true;
         if (!isDamaging){
-            SDL_SetRenderDrawColor(renderer,155,0,0,255);
+            SDL_SetRenderDrawColor(renderer,255,0,0,155);
             SDL_RenderFillRect(renderer,&rect);
             return;
         }
@@ -188,7 +188,7 @@ class Spike : public Enemy{
         if (start-warning_since>WAIT_TIME)
             isDamaging=true;
         if (!isDamaging){
-            SDL_SetRenderDrawColor(renderer,155,0,0,255);
+            SDL_SetRenderDrawColor(renderer,255,0,0,155);
             SDL_RenderFillRect(renderer,&rect);
             return;
         }
@@ -352,51 +352,23 @@ std::vector<std::string> coms={
     "500",
 
     "BALL START 900 200 500 200 END 200",
-    "0",
-    "SPIKE 200 500 50 2000",
     "500",
 
     "BALL START 900 600 500 600 END 400",
-    "0",
-    "LASER START 100 500 END 200 75",
     "250",
 
     "BALL START 900 100 500 100 END 200",
-    "0",
-    "LASER START 0 400 END 200 100",
     "250",
 
     "BALL START 900 300 500 300 END 150",
-    "0",
-    "LASER START 300 700 END 200 100",
     "500",
 
     "BALL START 900 300 500 300 END 150",
-    "0",
-    "LASER START 400 100 END 200 100",
-    "100",
-
-    "BALL START 900 400 500 400 END 300",
-    "500",
-
-    "BALL START 900 200 500 200 END 200",
-    "0",
-    "SPIKE 200 500 50 2000",
-    "500",
-
-    "BALL START 900 600 500 600 END 400",
-    "0",
-    "LASER START 100 500 END 200 75",
-    "250",
-
-    "BALL START 900 100 500 100 END 200",
-    "500",
-
-    "BALL START 900 300 500 300 END 150",
-    "500",
-
-    "BALL START 900 300 500 300 END 150"
+    "100"
 };
+
+std::vector<std::pair<std::vector<std::string>,Mix_Music*>> levels={{coms,l1_mus1}};
+int current_level=0;
 
 int curr_interval=0;
 int last_time=0;
@@ -411,11 +383,19 @@ void HandleList(){
                 last_time=start;
             }
             else{
-                Parse(coms[at],&enemies1);;
+                Parse(levels[current_level].first[at],&enemies1);
             }
             at++;
         }
     }
+}
+
+void switch_level(int no){
+    Mix_HaltMusic();
+    current_level=no;
+    Mix_PlayMusic(levels[current_level].second,0);
+    coms=levels[current_level].first;
+    at=0;
 }
 
 void loop1(){
@@ -574,7 +554,6 @@ int main(){
         return 1;
     }
     
-
     Mix_PlayMusic(l1_mus1,0);
     emscripten_set_main_loop(loop,0,1);
     return 0;

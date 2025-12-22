@@ -9,6 +9,7 @@
 #include <sstream>
 #include <map>
 #include <any>
+#include <memory>
 #define WAIT_TIME 1000
 //#define emscripten_cancel_main_loop() currloop=close
 //#define emscripten_set_main_loop(a,b,c) currloop=a
@@ -391,14 +392,6 @@ void HandleList(){
     }
 }
 
-void switch_level(int no){
-    Mix_HaltMusic();
-    current_level=no;
-    Mix_PlayMusic(levels[current_level].second,0);
-    coms=levels[current_level].first;
-    at=0;
-}
-
 float settings_volume=64.f;
 SDL_Rect settings_volume_up{200,200,100,100};
 SDL_Rect settings_volume_down{200,400,100,100};
@@ -580,6 +573,16 @@ void loop1(){
     */
 
     SDL_RenderPresent(renderer);
+}
+
+void switch_level(int no){
+    Mix_HaltMusic();
+    current_level=no;
+    Mix_PlayMusic(levels[current_level].second,0);
+    coms=levels[current_level].first;
+    at=0;
+    for (auto i:enemies1)
+        delete i;
 }
 
 int main(){

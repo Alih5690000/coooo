@@ -314,18 +314,7 @@ void Parse(std::string list,std::vector<Enemy*>* ens){
     }
 }
 
-Ball* l1_ball=new Ball({{0,0},{300,300},{600,300}},300);
-Ball* l1_ball2=new Ball({{0,0},{300,0},{300,300}},300);
-Ball* l1_ball3=new Ball({{300,300},{300,400},{500,700}},300);
-Ball* l1_ball4=new Ball({{900,200},{800,400},{700,700}},300);
-Ball* l1_ball5=new Ball({{900,500},{800,700},{700,700}},300);
-Laser* l1_laser1=new Laser({400,100},100,50);
-Laser* l1_laser2=new Laser({600,900},100,50);
-Sharik* l1_sharik1=new Sharik({{500,500}},50,200,100);
-Spike* l1_spike=new Spike({500,200,100,2000});
-
-std::vector<Enemy*> enemies1={l1_spike};
-//={l1_ball,l1_ball2,l1_ball3,l1_ball4,l1_laser1,l1_laser2,l1_sharik1};
+std::vector<Enemy*> enemies1;
 
 void HandleDelta(){
     start=SDL_GetTicks();

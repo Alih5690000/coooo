@@ -28,6 +28,11 @@ void close(){
     SDL_Quit();
 }
 
+void switch_loop(void (*to)()){
+    lastloop=currloop;
+    currloop=to;
+}
+
 bool dead=false;
 SDL_Rect ima_fckin_killer{400,400,50,50};
 float dmg_cd=0.f;
@@ -322,10 +327,17 @@ Spike* l1_spike=new Spike({500,200,100,2000});
 std::vector<Enemy*> enemies1={l1_spike};
 //={l1_ball,l1_ball2,l1_ball3,l1_ball4,l1_laser1,l1_laser2,l1_sharik1};
 
+void HandleDelta(){
+    start=SDL_GetTicks();
+    dt=(start-end)/1000.f;
+    end=start;
+}
+
 void loop1();
 
 void GameOver(){
     SDL_Event e;
+    HandleDelta();
     while (SDL_PollEvent(&e)){
         if (e.type==SDL_QUIT)
             emscripten_cancel_main_loop();
@@ -335,7 +347,7 @@ void GameOver(){
                 player.x=400;
                 player.y=400;
                 dead=false;
-                currloop=loop1;;
+                switch_loop(loop1);
             }
     }
     SDL_SetRenderDrawColor(renderer,0,0,0,255);
@@ -398,17 +410,77 @@ void switch_level(int no){
     at=0;
 }
 
+float settings_volume=64.f;
+SDL_Rect settings_volume_up{200,200,100,100};
+SDL_Rect settings_volume_down{200,400,100,100};
+std::vector<SDL_Rect> settings_buttons={settings_volume_up,settings_volume_down};
+void settings(){
+    int x,y;
+    Uint8 mstate=SDL_GetMouseState(&x,&y);
+    HandleDelta();
+    SDL_Event e;
+    while (SDL_PollEvent(&e)){
+        if (e.type==SDL_QUIT)
+            emscripten_cancel_main_loop();
+        if (e.type==SDL_KEYDOWN)
+            if (e.key.keysym.sym==SDLK_ESCAPE){
+                Mix_VolumeMusic((int)settings_volume);
+                Mix_ResumeMusic();
+                switch_loop(lastloop);
+            }
+    }
+    SDL_SetRenderDrawColor(renderer,0,0,0,255);
+    SDL_RenderClear(renderer);
+
+    if (settings_volume<0) settings_volume=0;
+    if (settings_volume>128) settings_volume=128;
+
+    SDL_Rect tchrect{x,y,1,1};
+    if (SDL_HasIntersection(&settings_volume_down,&tchrect) && (mstate & SDL_BUTTON_LMASK)){
+        settings_volume-=dt*30;
+        Mix_VolumeMusic((int)settings_volume);
+    }
+    if (SDL_HasIntersection(&settings_volume_up,&tchrect) && (mstate & SDL_BUTTON_LMASK)){
+        settings_volume+=dt*30;
+        Mix_VolumeMusic((int)settings_volume);
+    }
+
+    SDL_Rect sound_rect1{200, 100, 128 * 2, 50};
+
+    int filled_width = settings_volume * 2;
+
+    filled_width = SDL_clamp(filled_width, 0, sound_rect1.w);
+
+    SDL_Rect sound_rect2{
+        sound_rect1.x,
+        sound_rect1.y,
+        filled_width,
+        sound_rect1.h
+    };
+
+    SDL_SetRenderDrawColor(renderer,255,0,0,255);
+    SDL_RenderFillRect(renderer,&sound_rect1);
+    SDL_SetRenderDrawColor(renderer,0,255,0,255);
+    SDL_RenderFillRect(renderer,&sound_rect2);
+    SDL_SetRenderDrawColor(renderer,100,100,100,255);
+
+    for (auto& i:settings_buttons)
+        SDL_RenderFillRect(renderer,&i);
+
+    SDL_Rect r1{200,100,200,100};
+    
+    SDL_RenderPresent(renderer);
+}
+
 void loop1(){
     if (lives<=0){
         dead=true;
     }
     if (dead){
-        currloop=GameOver;
+        switch_loop(GameOver);
     }
 
-    start=SDL_GetTicks();
-    dt=(start-end)/1000.f;
-    end=start;
+    HandleDelta();
 
     HandleList();
 
@@ -461,6 +533,11 @@ void loop1(){
     while (SDL_PollEvent(&e)){
         if (e.type==SDL_QUIT)
             emscripten_cancel_main_loop();
+        if (e.type==SDL_KEYDOWN)
+            if (e.key.keysym.sym==SDLK_ESCAPE){
+                Mix_PauseMusic();
+                switch_loop(settings);
+            }
     }
 
     SDL_SetRenderDrawColor(renderer,0,0,0,255);
@@ -532,6 +609,8 @@ int main(){
 
     window=SDL_CreateWindow("Game",0,0,1000,800,SDL_WINDOW_SHOWN);
     renderer=SDL_CreateRenderer(window,-1,SDL_RENDERER_ACCELERATED);
+
+    SDL_SetRenderDrawBlendMode(renderer,SDL_BLENDMODE_BLEND);
 
     arial=TTF_OpenFont("assets/arialmt.ttf",100);
     if (!arial){

@@ -350,23 +350,47 @@ void GameOver(){
 }
 
 std::vector<std::string> coms={
-    "BALL START 900 400 500 400 END 300",
+    "BALL START 900 400 0 400 END 300",
     "500",
 
-    "BALL START 900 200 500 200 END 200",
+    "BALL START 900 200 0 200 END 200",
     "500",
 
-    "BALL START 900 600 500 600 END 400",
+    "BALL START 900 600 0 600 END 400",
     "250",
 
-    "BALL START 900 100 500 100 END 200",
-    "250",
-
-    "BALL START 900 300 500 300 END 150",
+    "BALL START 900 100 0 100 END 200",
     "500",
 
-    "BALL START 900 300 500 300 END 150",
-    "100"
+    "BALL START 900 300 0 300 END 150",
+    "500",
+
+    //
+
+    "BALL START 900 400 0 400 END 150",
+    "500",
+
+    "BALL START 900 100 0 100 END 150",
+    "500",
+    
+    "BALL START 900 600 0 600 END 150",
+    "250",
+
+    "BALL START 900 400 0 400 END 150",
+    "500",
+
+    "BALL START 900 900 0 900 END 150",
+    "250",
+
+    "BALL START 900 100 0 100 END 150",
+    "250",
+
+    "BALL START 900 600 0 600 END 150",
+    "250",
+
+    "BALL START 900 200 0 200 END 150",
+    "500",
+
 };
 
 std::vector<std::pair<std::vector<std::string>,Mix_Music*>> levels={{coms,l1_mus1}};

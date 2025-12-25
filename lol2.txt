@@ -3,6 +3,5 @@ em++ lll.cpp \
 -s SDL2_MIXER_FORMATS='["mp3","ogg","wav"]' \
 --preload-file assets@assets \
 -s ALLOW_MEMORY_GROWTH=1 \
--o index.html && emrun index.html --no-browser
-
+-o index.html && emrun index.html --no-browser \
 #do not forget to clean heap objects :)

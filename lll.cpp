@@ -205,7 +205,7 @@ class Ball : public Enemy{
             return;
         }
         if (exMode){
-            left-=dt;
+            left-=dt*1000;
             if (left<=0)
                 active=false;
         }
@@ -395,9 +395,7 @@ void GameOver(){
 }
 
 std::vector<std::string> coms={
-    "BALL START -1 2 400 400 END 300 50",
-    "500",
-
+    
     "BALL START 900 200 0 200 END 200 50",
     "500",
 
@@ -435,6 +433,15 @@ std::vector<std::string> coms={
 
     "BALL START 900 200 0 200 END 150 50",
     "500",
+
+    "BALL START -1 100 400 300 END 300 200",
+    "100",
+
+    "BALL START -1 100 390 290 END 300 200",
+    "100",
+
+    "BALL START -1 100 410 310 END 300 200",
+    "100",
 
 };
 

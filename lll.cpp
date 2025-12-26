@@ -10,13 +10,14 @@
 #include <map>
 #include <any>
 #include <memory>
-#define WAIT_TIME 1000
 //#define emscripten_cancel_main_loop() currloop=close
 //#define emscripten_set_main_loop(a,b,c) currloop=a
 
 //MY HANDS SHALL RELISH ENDING YOU HERE AND KNOW!!!!
 //1 minute later
 //is that my blood?..
+
+int WAIT_TIME=1000;
 
 void (*lastloop)();
 void (*currloop)();
@@ -87,6 +88,8 @@ class Enemy{
     public:
     bool active=true;
     bool isDamaging=false;
+    bool exMode=false;
+    float left;
     SDL_Rect rect;
     virtual void update(){};
     virtual ~Enemy()=default;
@@ -100,7 +103,12 @@ class Sharik : public Enemy{
     int curr=0;
     int warning_since=0;
     Sharik(std::vector<std::pair<int,int>> r,int s,int e,int spee) : road(r), s(s), e(e), speed(spee){
-        rect={r[0].first,r[0].second,s,s};
+        if (r[0].first==-1){
+            exMode=true;
+            left=r[0].second;
+            rect={r[1].first,r[1].second,s,s};
+        }else
+            rect={r[0].first,r[0].second,s,s};
         warning_since=start;
     }
     void update() override{
@@ -111,16 +119,23 @@ class Sharik : public Enemy{
             SDL_RenderFillRect(renderer,&rect);
             return;
         }
-        rect.x-=speed*dt;
-        rect.y-=speed*dt;
-        rect.w+=speed*dt;
-        rect.h+=speed*dt;
-        if (curr>=road.size())
-            curr=0;
-        if (rect.w>e)
-            active=false;
-        if (!move(&rect,road[curr].first,road[curr].second,speed,dt))
-            curr++;
+        if (exMode){
+            left-=dt;
+            if (left<=0)
+                active=false;
+        }
+        else{
+            rect.x-=speed*dt;
+            rect.y-=speed*dt;
+            rect.w+=speed*dt;
+            rect.h+=speed*dt;
+            if (curr>=road.size())
+                curr=0;
+            if (rect.w>e)
+                active=false;
+            if (!move(&rect,road[curr].first,road[curr].second,speed,dt))
+                curr++;
+        }
         SDL_SetRenderDrawColor(renderer,255,0,0,255);
         SDL_RenderFillRect(renderer,&rect);
     }
@@ -133,7 +148,12 @@ class Laser : public Enemy{
     int warning_since=0;
     std::vector<int> cords;
     Laser(std::vector<int> cords,int s,int w):cords(cords),speed(s){
-        rect={cords[0],0,w,2000};
+        if (cords[0]==-1){
+            exMode=true;
+            left=cords[1];
+            rect={cords[2],0,w,2000};
+        }else
+            rect={cords[0],0,w,2000};
         warning_since=start;
     }
     void update() override{
@@ -144,10 +164,17 @@ class Laser : public Enemy{
             SDL_RenderFillRect(renderer,&rect);
             return;
         }
-        if (!move(&rect,cords[curr],0,speed,dt))
-            curr++;
-        if (curr>=cords.size())
-            active=false;
+        if (exMode){
+            left-=dt;
+            if (left<=0)
+                active=false;
+        }
+        else{
+            if (!move(&rect,cords[curr],0,speed,dt))
+                curr++;
+            if (curr>=cords.size())
+                active=false;
+        }
         SDL_SetRenderDrawColor(renderer,255,0,0,255);
         SDL_RenderFillRect(renderer,&rect);
     }
@@ -161,7 +188,12 @@ class Ball : public Enemy{
     int warning_since=0;
     std::vector<std::pair<int,int>> road;
     Ball(std::vector<std::pair<int,int>> r,int s) : road(r),speed(s){
-        rect={road[0].first,road[0].second,50,50};
+        if (r[0].first==-1){
+            exMode=true;
+            left=r[0].second;
+            rect={r[1].first,r[1].second,100,100};
+        }else
+            rect={r[0].first,r[0].second,100,100};
         warning_since=start;
     }
     void update() override{
@@ -172,10 +204,17 @@ class Ball : public Enemy{
             SDL_RenderFillRect(renderer,&rect);
             return;
         }
-        if (!move(&rect,std::get<0>(road[curr]),std::get<1>(road[curr]),speed,dt))
-            curr++;
-        if (curr>=road.size())
-            active=false;
+        if (exMode){
+            left-=dt;
+            if (left<=0)
+                active=false;
+        }
+        else{
+            if (!move(&rect,std::get<0>(road[curr]),std::get<1>(road[curr]),speed,dt))
+                curr++;
+            if (curr>=road.size())
+                active=false;
+        }
         SDL_SetRenderDrawColor(renderer,255,0,0,255);
         SDL_RenderFillRect(renderer,&rect);
     }
@@ -253,7 +292,8 @@ void Parse(std::string list,std::vector<Enemy*>* ens){
             start=std::stoi(tokens[i]);
             end=std::stoi(tokens[i+1]);
             speed=std::stoi(tokens[i+2]);
-            ens->push_back(new Sharik(path,start,end,speed));
+            Enemy* en=new Sharik(path,start,end,speed);
+            ens->push_back(en);
             i+=3;
         }
         else if (token=="BALL"){
@@ -275,7 +315,12 @@ void Parse(std::string list,std::vector<Enemy*>* ens){
             if (tokens.size()<=i)
                 throw std::runtime_error("too few arguments");
             speed=std::stoi(tokens[i]);
-            ens->push_back(new Ball(path,speed));
+            Enemy* en=new Ball(path,speed);
+            int size=std::stoi(tokens[i+1]);
+            en->rect.w=size;
+            en->rect.h=size;
+            ens->push_back(en);
+            i++;
         }
         else if (token=="LASER"){
             std::vector<int> path;
@@ -350,45 +395,45 @@ void GameOver(){
 }
 
 std::vector<std::string> coms={
-    "BALL START 900 400 0 400 END 300",
+    "BALL START -1 2 400 400 END 300 50",
     "500",
 
-    "BALL START 900 200 0 200 END 200",
+    "BALL START 900 200 0 200 END 200 50",
     "500",
 
-    "BALL START 900 600 0 600 END 400",
+    "BALL START 900 600 0 600 END 400 50",
     "250",
 
-    "BALL START 900 100 0 100 END 200",
+    "BALL START 900 100 0 100 END 200 50",
     "500",
 
-    "BALL START 900 300 0 300 END 150",
+    "BALL START 900 300 0 300 END 150 50",
     "500",
 
     //
 
-    "BALL START 900 400 0 400 END 150",
+    "BALL START 900 400 0 400 END 150 50",
     "500",
 
-    "BALL START 900 100 0 100 END 150",
+    "BALL START 900 100 0 100 END 150 50",
     "500",
     
-    "BALL START 900 600 0 600 END 150",
+    "BALL START 900 600 0 600 END 150 50",
     "250",
 
-    "BALL START 900 400 0 400 END 150",
+    "BALL START 900 400 0 400 END 150 50",
     "500",
 
-    "BALL START 900 900 0 900 END 150",
+    "BALL START 900 900 0 900 END 150 50",
     "250",
 
-    "BALL START 900 100 0 100 END 150",
+    "BALL START 900 100 0 100 END 150 50",
     "250",
 
-    "BALL START 900 600 0 600 END 150",
+    "BALL START 900 600 0 600 END 150 50",
     "250",
 
-    "BALL START 900 200 0 200 END 150",
+    "BALL START 900 200 0 200 END 150 50",
     "500",
 
 };

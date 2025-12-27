@@ -443,6 +443,18 @@ std::vector<std::string> coms={
     "BALL START -1 100 410 310 END 300 200",
     "100",
 
+    "SHARIK START 200 200 END 100 300 100",
+    "3000",
+
+    "BALL START -1 100 200 100 END 300 300",
+    "100",
+
+    "BALL START -1 100 190 90 END 300 300",
+    "100",
+
+    "BALL START -1 100 210 110 END 300 300",
+    "100",
+
 };
 
 std::vector<std::pair<std::vector<std::string>,Mix_Music*>> levels={{coms,l1_mus1}};

@@ -394,11 +394,19 @@ void GameOver(){
     SDL_RenderPresent(renderer);
 }
 
-std::vector<int> pauses={
-    
-};
+std::vector<int> pauses;
 
 std::vector<Enemy*> objs;
+
+std::vector<int> pauses1={
+    500,
+    700
+};
+
+std::vector<Enemy*> objs={
+    new Ball({{-1,2000},{200,200}},0),
+    new Ball({{-1,2000},{100,100}},0)
+};
 
 std::vector<std::tuple<std::vector<int>,std::vector<Enemy*>,Mix_Music*>> levels;
 int current_level=0;

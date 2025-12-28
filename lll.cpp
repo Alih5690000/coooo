@@ -89,8 +89,11 @@ class Enemy{
     bool active=true;
     bool isDamaging=false;
     bool exMode=false;
+    unsigned char ndmgAlpha=155;
     float left;
     SDL_Rect rect;
+    int warning_since=0;
+    bool started=false;
     virtual void update(){};
     virtual ~Enemy()=default;
 };
@@ -101,7 +104,6 @@ class Sharik : public Enemy{
     int s,e;
     int speed;
     int curr=0;
-    int warning_since=0;
     Sharik(std::vector<std::pair<int,int>> r,int s,int e,int spee) : road(r), s(s), e(e), speed(spee){
         if (r[0].first==-1){
             exMode=true;
@@ -109,13 +111,16 @@ class Sharik : public Enemy{
             rect={r[1].first,r[1].second,s,s};
         }else
             rect={r[0].first,r[0].second,s,s};
-        warning_since=start;
     }
     void update() override{
+        if (!started){
+            started=true;
+            warning_since=SDL_GetTicks();
+        }
         if (start-warning_since>WAIT_TIME)
             isDamaging=true;
         if (!isDamaging){
-            SDL_SetRenderDrawColor(renderer,255,0,0,155);
+            SDL_SetRenderDrawColor(renderer,255,0,0,ndmgAlpha);
             SDL_RenderFillRect(renderer,&rect);
             return;
         }
@@ -145,7 +150,6 @@ class Laser : public Enemy{
     public:
     int speed;
     int curr=0;
-    int warning_since=0;
     std::vector<int> cords;
     Laser(std::vector<int> cords,int s,int w):cords(cords),speed(s){
         if (cords[0]==-1){
@@ -154,13 +158,16 @@ class Laser : public Enemy{
             rect={cords[2],0,w,2000};
         }else
             rect={cords[0],0,w,2000};
-        warning_since=start;
     }
     void update() override{
+        if (!started){
+            started=true;
+            warning_since=SDL_GetTicks();
+        }
         if (start-warning_since>WAIT_TIME)
             isDamaging=true;
         if (!isDamaging){
-            SDL_SetRenderDrawColor(renderer,255,0,0,155);
+            SDL_SetRenderDrawColor(renderer,255,0,0,ndmgAlpha);
             SDL_RenderFillRect(renderer,&rect);
             return;
         }
@@ -185,7 +192,6 @@ class Ball : public Enemy{
     public:
     int speed;
     int curr=0;
-    int warning_since=0;
     std::vector<std::pair<int,int>> road;
     Ball(std::vector<std::pair<int,int>> r,int s) : road(r),speed(s){
         if (r[0].first==-1){
@@ -194,13 +200,16 @@ class Ball : public Enemy{
             rect={r[1].first,r[1].second,100,100};
         }else
             rect={r[0].first,r[0].second,100,100};
-        warning_since=start;
     }
     void update() override{
+        if (!started){
+            started=true;
+            warning_since=SDL_GetTicks();
+        }
         if (start-warning_since>WAIT_TIME)
             isDamaging=true;
         if (!isDamaging){
-            SDL_SetRenderDrawColor(renderer,255,0,0,155);
+            SDL_SetRenderDrawColor(renderer,255,0,0,ndmgAlpha);
             SDL_RenderFillRect(renderer,&rect);
             return;
         }
@@ -223,17 +232,19 @@ class Ball : public Enemy{
 class Spike : public Enemy{
     public:
     float livetime;
-    int warning_since=0;
     Spike(SDL_Rect r){
         livetime=0.f;
         rect=r;
-        warning_since=start;
     }
     void update() override{
+        if (!started){
+            started=true;
+            warning_since=SDL_GetTicks();
+        }
         if (start-warning_since>WAIT_TIME)
             isDamaging=true;
         if (!isDamaging){
-            SDL_SetRenderDrawColor(renderer,255,0,0,155);
+            SDL_SetRenderDrawColor(renderer,255,0,0,ndmgAlpha);
             SDL_RenderFillRect(renderer,&rect);
             return;
         }
@@ -261,104 +272,6 @@ class Custom : public Enemy{
         updatefunc(this);
     }
 };
-
-void Parse(std::string list,std::vector<Enemy*>* ens){
-    std::vector<std::string> tokens;
-    std::stringstream stream(list);
-    std::string temp;
-    while (stream>>temp){
-        tokens.push_back(temp);
-    }
-    for (int i=0;i<tokens.size();i++){
-        auto token=tokens[i];
-        if (token=="SHARIK"){
-            std::vector<std::pair<int,int>> path;
-            int start,end,speed;
-            i++;
-            if (tokens[i]!="START")
-                throw std::runtime_error("Invalid syntax (no START)");
-            i++;
-            while(true){
-                if (tokens[i]=="END")
-                    break;
-                if (i>=tokens.size())
-                    throw std::runtime_error("START unclosed");
-                path.push_back(std::make_pair(std::stoi(tokens[i]),std::stoi(tokens[i+1])));
-                i+=2;
-            }
-            i++;
-            if (tokens.size()<=i+2)
-                throw std::runtime_error("too few arguments");
-            start=std::stoi(tokens[i]);
-            end=std::stoi(tokens[i+1]);
-            speed=std::stoi(tokens[i+2]);
-            Enemy* en=new Sharik(path,start,end,speed);
-            ens->push_back(en);
-            i+=3;
-        }
-        else if (token=="BALL"){
-            std::vector<std::pair<int,int>> path;
-            int speed;
-            i++;
-            if (tokens[i]!="START")
-                throw std::runtime_error("Invalid syntax (no START)");
-            i++;
-            while(true){
-                if (tokens[i]=="END")
-                    break;
-                if (i>=tokens.size())
-                    throw std::runtime_error("START unclosed");
-                path.push_back(std::make_pair(std::stoi(tokens[i]),std::stoi(tokens[i+1])));
-                i+=2;
-            }
-            i++;
-            if (tokens.size()<=i)
-                throw std::runtime_error("too few arguments");
-            speed=std::stoi(tokens[i]);
-            Enemy* en=new Ball(path,speed);
-            int size=std::stoi(tokens[i+1]);
-            en->rect.w=size;
-            en->rect.h=size;
-            ens->push_back(en);
-            i++;
-        }
-        else if (token=="LASER"){
-            std::vector<int> path;
-            int speed,width;
-            i++;
-            if (tokens[i]!="START")
-                throw std::runtime_error("Invalid syntax (no START)");
-            i++;
-            while(true){
-                if (tokens[i]=="END")
-                    break;
-                if (i>=tokens.size())
-                    throw std::runtime_error("START unclosed");
-                path.push_back(std::stoi(tokens[i]));
-                i++;
-            }
-            i++;
-            if (tokens.size()<=i+1)
-                throw std::runtime_error("too few arguments");
-            speed=std::stoi(tokens[i]);
-            width=std::stoi(tokens[i+1]);
-            ens->push_back(new Laser(path,speed,width));
-            i++;
-        }
-        else if (token=="SPIKE"){
-            int x,y,w,h;
-            i++;
-            x=std::stoi(tokens[i]);
-            i++;
-            y=std::stoi(tokens[i]);
-            i++;
-            w=std::stoi(tokens[i]);
-            i++;
-            h=std::stoi(tokens[i]);
-            ens->push_back(new Spike({x,y,w,h}));
-        }
-    }
-}
 
 std::vector<Enemy*> enemies1;
 
@@ -399,16 +312,22 @@ std::vector<int> pauses;
 std::vector<Enemy*> objs;
 
 std::vector<int> pauses1={
-    500,
+    1000,
+    2000,
     700
 };
 
-std::vector<Enemy*> objs={
-    new Ball({{-1,2000},{200,200}},0),
+std::vector<Enemy*> objs1={
+    new Enemy,
+    []()->Enemy*{
+        Ball* u=new Ball({{-1,2000},{200,200}},0);
+        u->ndmgAlpha=0;
+        return u;
+    }(),
     new Ball({{-1,2000},{100,100}},0)
 };
 
-std::vector<std::tuple<std::vector<int>,std::vector<Enemy*>,Mix_Music*>> levels;
+std::vector<std::tuple<std::vector<int>,std::vector<Enemy*>,Mix_Music*>> levels={{pauses1,objs1,l1_mus1}};
 int current_level=0;
 
 int curr_interval=0;
@@ -417,6 +336,8 @@ int at=0;
 
 
 void HandleList(){
+    if (at>=pauses.size())
+        return;
     if (start-last_time>curr_interval){
         enemies1.push_back(objs[at]);
         last_time=start;
@@ -659,7 +580,7 @@ int main(){
         return 1;
     }
     
-    Mix_PlayMusic(l1_mus1,0);
+    switch_level(0);
     emscripten_set_main_loop(loop,0,1);
     return 0;
 }

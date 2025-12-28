@@ -394,70 +394,13 @@ void GameOver(){
     SDL_RenderPresent(renderer);
 }
 
-std::vector<std::string> coms={
+std::vector<int> pauses={
     
-    "BALL START 900 200 0 200 END 200 50",
-    "500",
-
-    "BALL START 900 600 0 600 END 400 50",
-    "250",
-
-    "BALL START 900 100 0 100 END 200 50",
-    "500",
-
-    "BALL START 900 300 0 300 END 150 50",
-    "500",
-
-    //
-
-    "BALL START 900 400 0 400 END 150 50",
-    "500",
-
-    "BALL START 900 100 0 100 END 150 50",
-    "500",
-    
-    "BALL START 900 600 0 600 END 150 50",
-    "250",
-
-    "BALL START 900 400 0 400 END 150 50",
-    "500",
-
-    "BALL START 900 900 0 900 END 150 50",
-    "250",
-
-    "BALL START 900 100 0 100 END 150 50",
-    "250",
-
-    "BALL START 900 600 0 600 END 150 50",
-    "250",
-
-    "BALL START 900 200 0 200 END 150 50",
-    "500",
-
-    "BALL START -1 100 400 300 END 300 200",
-    "100",
-
-    "BALL START -1 100 390 290 END 300 200",
-    "100",
-
-    "BALL START -1 100 410 310 END 300 200",
-    "100",
-
-    "SHARIK START 200 200 END 100 300 100",
-    "3000",
-
-    "BALL START -1 100 200 100 END 300 300",
-    "100",
-
-    "BALL START -1 100 190 90 END 300 300",
-    "100",
-
-    "BALL START -1 100 210 110 END 300 300",
-    "100",
-
 };
 
-std::vector<std::pair<std::vector<std::string>,Mix_Music*>> levels={{coms,l1_mus1}};
+std::vector<Enemy*> objs;
+
+std::vector<std::tuple<std::vector<int>,std::vector<Enemy*>,Mix_Music*>> levels;
 int current_level=0;
 
 int curr_interval=0;
@@ -467,15 +410,15 @@ int at=0;
 
 void HandleList(){
     if (start-last_time>curr_interval){
-        if (at<coms.size()){
+        if (at<pauses.size()){
             if (at%2==1 && at!=0){
-                curr_interval=std::stoi(coms[at]);
+                curr_interval=pauses[at];
                 last_time=start;
+                at++;
             }
             else{
-                Parse(levels[current_level].first[at],&enemies1);
+                enemies1.push_back(objs[at]);
             }
-            at++;
         }
     }
 }
@@ -666,8 +609,9 @@ void loop1(){
 void switch_level(int no){
     Mix_HaltMusic();
     current_level=no;
-    Mix_PlayMusic(levels[current_level].second,0);
-    coms=levels[current_level].first;
+    Mix_PlayMusic(std::get<2>(levels[current_level]),0);
+    pauses=std::get<0>(levels[current_level]);
+    objs=std::get<1>(levels[current_level]);
     at=0;
     for (auto i:enemies1)
         delete i;

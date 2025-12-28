@@ -410,16 +410,10 @@ int at=0;
 
 void HandleList(){
     if (start-last_time>curr_interval){
-        if (at<pauses.size()){
-            if (at%2==1 && at!=0){
-                curr_interval=pauses[at];
-                last_time=start;
-                at++;
-            }
-            else{
-                enemies1.push_back(objs[at]);
-            }
-        }
+        enemies1.push_back(objs[at]);
+        last_time=start;
+        curr_interval=pauses[at];
+        at++;
     }
 }
 

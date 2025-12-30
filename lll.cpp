@@ -61,7 +61,7 @@ bool move(SDL_FRect* rect, int targetX, int targetY, float speed, float delta) {
     float dy = targetY - rect->y;
     float dist = SDL_sqrtf(dx * dx + dy * dy);
 
-    if (dist < speed * delta) { 
+    if (dist <= speed * delta) { 
         rect->x = targetX;
         rect->y = targetY;
         return false;
@@ -113,7 +113,7 @@ class Sharik : public Enemy{
     Sharik(std::vector<std::pair<int,int>> r,int s,int e,int spee) : road(r), s(s), e(e), speed(spee){
         if (r[0].first==-1){
             exMode=true;
-            left=r[0].second;
+            left=r[0].second/1000.f;
             rect={r[1].first,r[1].second,s,s};
         }else
             rect={r[0].first,r[0].second,s,s};
@@ -155,7 +155,7 @@ class Laser : public Enemy{
     Laser(std::vector<int> cords,int s,int w):cords(cords),speed(s){
         if (cords[0]==-1){
             exMode=true;
-            left=cords[1];
+            left=cords[1]/1000.f;
             rect={cords[2],0,w,2000};
         }else
             rect={cords[0],0,w,2000};
@@ -192,7 +192,7 @@ class Ball : public Enemy{
     Ball(std::vector<std::pair<int,int>> r,int s) : road(r),speed(s){
         if (r[0].first==-1){
             exMode=true;
-            left=r[0].second;
+            left=r[0].second/1000.f;
             rect={r[1].first,r[1].second,100,100};
         }else
             rect={r[0].first,r[0].second,100,100};
@@ -205,7 +205,7 @@ class Ball : public Enemy{
             return;
         }
         if (exMode){
-            left-=dt*1000;
+            left-=dt;
             if (left<=0)
                 active=false;
         }
@@ -223,7 +223,7 @@ class Ball : public Enemy{
 class Spike : public Enemy{
     public:
     float livetime;
-    Spike(SDL_Rect r){
+    Spike(SDL_FRect r){
         livetime=0.f;
         rect=r;
     }
@@ -249,7 +249,7 @@ class Custom : public Enemy{
     int speed;
     int pause;
     void (*updatefunc)(Custom*);
-    Custom(SDL_Rect r,void (*u)(Custom*),void (*c)(Custom*)){
+    Custom(SDL_FRect r,void (*u)(Custom*),void (*c)(Custom*)){
         updatefunc=u;
         rect=r;
         c(this);

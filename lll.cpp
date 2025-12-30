@@ -39,7 +39,7 @@ bool dead=false;
 SDL_Rect ima_fckin_killer{400,400,50,50};
 float dmg_cd=0.f;
 int lives=5;
-SDL_Rect player{100,100,50,50};
+SDL_FRect player{100,100,50,50};
 int plr_speed=300;
 int plr_dsh_speed=10000;
 SDL_Window* window;
@@ -56,7 +56,7 @@ float end;
 bool keydownDASH=false;
 SDL_Scancode dashBut=SDL_SCANCODE_E;
 
-bool move(SDL_Rect* rect, int targetX, int targetY, float speed, float delta) {
+bool move(SDL_FRect* rect, int targetX, int targetY, float speed, float delta) {
     float dx = targetX - rect->x;
     float dy = targetY - rect->y;
     float dist = SDL_sqrtf(dx * dx + dy * dy);
@@ -91,7 +91,7 @@ class Enemy{
     bool exMode=false;
     unsigned char ndmgAlpha=155;
     float left;
-    SDL_Rect rect;
+    SDL_FRect rect;
     float ndmg_left=WAIT_TIME;
     bool started=false;
     virtual void update(){};
@@ -122,7 +122,7 @@ class Sharik : public Enemy{
         Handle();
         if (!isDamaging){
             SDL_SetRenderDrawColor(renderer,255,0,0,ndmgAlpha);
-            SDL_RenderFillRect(renderer,&rect);
+            SDL_RenderFillRectF(renderer,&rect);
             return;
         }
         if (exMode){
@@ -143,7 +143,7 @@ class Sharik : public Enemy{
                 curr++;
         }
         SDL_SetRenderDrawColor(renderer,255,0,0,255);
-        SDL_RenderFillRect(renderer,&rect);
+        SDL_RenderFillRectF(renderer,&rect);
     }
 };
 
@@ -164,7 +164,7 @@ class Laser : public Enemy{
         Handle();
         if (!isDamaging){
             SDL_SetRenderDrawColor(renderer,255,0,0,ndmgAlpha);
-            SDL_RenderFillRect(renderer,&rect);
+            SDL_RenderFillRectF(renderer,&rect);
             return;
         }
         if (exMode){
@@ -179,7 +179,7 @@ class Laser : public Enemy{
                 active=false;
         }
         SDL_SetRenderDrawColor(renderer,255,0,0,255);
-        SDL_RenderFillRect(renderer,&rect);
+        SDL_RenderFillRectF(renderer,&rect);
     }
 };
 
@@ -201,7 +201,7 @@ class Ball : public Enemy{
         Handle();
         if (!isDamaging){
             SDL_SetRenderDrawColor(renderer,255,0,0,ndmgAlpha);
-            SDL_RenderFillRect(renderer,&rect);
+            SDL_RenderFillRectF(renderer,&rect);
             return;
         }
         if (exMode){
@@ -216,7 +216,7 @@ class Ball : public Enemy{
                 active=false;
         }
         SDL_SetRenderDrawColor(renderer,255,0,0,255);
-        SDL_RenderFillRect(renderer,&rect);
+        SDL_RenderFillRectF(renderer,&rect);
     }
 };
 
@@ -231,14 +231,14 @@ class Spike : public Enemy{
         Handle();
         if (!isDamaging){
             SDL_SetRenderDrawColor(renderer,255,0,0,ndmgAlpha);
-            SDL_RenderFillRect(renderer,&rect);
+            SDL_RenderFillRectF(renderer,&rect);
             return;
         }
         if (livetime>=3.f)
             active=false;
         livetime+=dt;
         SDL_SetRenderDrawColor(renderer,255,0,0,255);
-        SDL_RenderFillRect(renderer,&rect);
+        SDL_RenderFillRectF(renderer,&rect);
     }
 };
 
@@ -469,7 +469,7 @@ void loop1(){
     SDL_SetRenderDrawColor(renderer,0,0,255,255);
     else
     SDL_SetRenderDrawColor(renderer,255,0,255,255);
-    SDL_RenderFillRect(renderer,&player);
+    SDL_RenderFillRectF(renderer,&player);
     std::vector<Enemy*> real;
     for (auto i:enemies1){
         if (i->active)
@@ -479,7 +479,7 @@ void loop1(){
             continue;
         }
         i->update();
-        if (SDL_HasIntersection(&i->rect,&player) && dmg_cd==0 && i->isDamaging){
+        if (SDL_HasIntersectionF(&i->rect,&player) && dmg_cd==0 && i->isDamaging){
             lives--;
             dmg_cd=2;
         }

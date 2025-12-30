@@ -522,8 +522,6 @@ void switch_level(int no){
     pauses=std::get<0>(levels[current_level]);
     objs=std::get<1>(levels[current_level]);
     at=0;
-    for (auto i:enemies1)
-        delete i;
 }
 
 int main(){

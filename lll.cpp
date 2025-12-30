@@ -92,10 +92,16 @@ class Enemy{
     unsigned char ndmgAlpha=155;
     float left;
     SDL_Rect rect;
-    int warning_since=0;
+    float ndmg_left=WAIT_TIME;
     bool started=false;
     virtual void update(){};
     virtual ~Enemy()=default;
+    void Handle(){
+      if (ndmg_left>0){ 
+          ndmg_left-=dt;
+          if (ndmg_left<=0) isDamaging=true;
+        }  
+    } 
 };
 
 class Sharik : public Enemy{
@@ -113,12 +119,7 @@ class Sharik : public Enemy{
             rect={r[0].first,r[0].second,s,s};
     }
     void update() override{
-        if (!started){
-            started=true;
-            warning_since=SDL_GetTicks();
-        }
-        if (start-warning_since>WAIT_TIME)
-            isDamaging=true;
+        Handle();
         if (!isDamaging){
             SDL_SetRenderDrawColor(renderer,255,0,0,ndmgAlpha);
             SDL_RenderFillRect(renderer,&rect);
@@ -160,12 +161,7 @@ class Laser : public Enemy{
             rect={cords[0],0,w,2000};
     }
     void update() override{
-        if (!started){
-            started=true;
-            warning_since=SDL_GetTicks();
-        }
-        if (start-warning_since>WAIT_TIME)
-            isDamaging=true;
+        Handle();
         if (!isDamaging){
             SDL_SetRenderDrawColor(renderer,255,0,0,ndmgAlpha);
             SDL_RenderFillRect(renderer,&rect);
@@ -202,12 +198,7 @@ class Ball : public Enemy{
             rect={r[0].first,r[0].second,100,100};
     }
     void update() override{
-        if (!started){
-            started=true;
-            warning_since=SDL_GetTicks();
-        }
-        if (start-warning_since>WAIT_TIME)
-            isDamaging=true;
+        Handle();
         if (!isDamaging){
             SDL_SetRenderDrawColor(renderer,255,0,0,ndmgAlpha);
             SDL_RenderFillRect(renderer,&rect);
@@ -237,12 +228,7 @@ class Spike : public Enemy{
         rect=r;
     }
     void update() override{
-        if (!started){
-            started=true;
-            warning_since=SDL_GetTicks();
-        }
-        if (start-warning_since>WAIT_TIME)
-            isDamaging=true;
+        Handle();
         if (!isDamaging){
             SDL_SetRenderDrawColor(renderer,255,0,0,ndmgAlpha);
             SDL_RenderFillRect(renderer,&rect);

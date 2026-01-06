@@ -92,7 +92,7 @@ class Enemy{
     unsigned char ndmgAlpha=155;
     float left;
     SDL_FRect rect;
-    float ndmg_left=WAIT_TIME;
+    float ndmg_left=WAIT_TIME/1000.f;
     bool started=false;
     virtual void update(){};
     virtual ~Enemy()=default;
@@ -114,9 +114,9 @@ class Sharik : public Enemy{
         if (r[0].first==-1){
             exMode=true;
             left=r[0].second/1000.f;
-            rect={r[1].first,r[1].second,s,s};
+            rect={(float)r[1].first,(float)r[1].second,(float)s,(float)s};
         }else
-            rect={r[0].first,r[0].second,s,s};
+            rect={(float)r[0].first,(float)r[0].second,(float)s,(float)s};
     }
     void update() override{
         Handle();
@@ -156,9 +156,9 @@ class Laser : public Enemy{
         if (cords[0]==-1){
             exMode=true;
             left=cords[1]/1000.f;
-            rect={cords[2],0,w,2000};
+            rect={(float)cords[2],0,(float)w,2000};
         }else
-            rect={cords[0],0,w,2000};
+            rect={(float)cords[0],0,(float)w,2000};
     }
     void update() override{
         Handle();
@@ -193,9 +193,9 @@ class Ball : public Enemy{
         if (r[0].first==-1){
             exMode=true;
             left=r[0].second/1000.f;
-            rect={r[1].first,r[1].second,100,100};
+            rect={(float)r[1].first,(float)r[1].second,100,100};
         }else
-            rect={r[0].first,r[0].second,100,100};
+            rect={(float)r[0].first,(float)r[0].second,100,100};
     }
     void update() override{
         Handle();

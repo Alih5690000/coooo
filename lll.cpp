@@ -110,7 +110,7 @@ class Trail : public Enemy{
     unsigned char alpha=255;
     Trail(SDL_FRect r) : rect(r){}
     void update() override{
-        alpha-=dt;
+        alpha-=dt*255;
         if (alpha<=0){
             active=false;
             return;

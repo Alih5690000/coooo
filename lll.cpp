@@ -104,6 +104,22 @@ class Enemy{
     } 
 };
 
+class Trail : public Enemy{
+    public:
+    SDL_FRect rect;
+    unsigned char alpha=255;
+    Trail(SDL_FRect r) : rect(r){}
+    void update() override{
+        alpha-=dt;
+        if (alpha<=0){
+            active=false;
+            return;
+        }
+        SDL_SetRenderDrawColor(renderer,0,0,255,alpha);
+        SDL_RenderFillRectF(renderer,&rect);
+    }
+};
+
 class Sharik : public Enemy{
     public:
     std::vector<std::pair<int,int>> road;
@@ -305,10 +321,10 @@ std::vector<int> pauses1={
 
 std::vector<Enemy*> objs1={
     new Enemy,
-    []()->Enemy*{
+    [](){
         Ball* u=new Ball({{-1,2000},{200,200}},0);
         u->ndmgAlpha=0;
-        return u;
+        return (Enemy*)u;
     }(),
     new Ball({{-1,2000},{100,100}},0)
 };
@@ -319,7 +335,6 @@ int current_level=0;
 int curr_interval=0;
 int last_time=0;
 int at=0;
-
 
 void HandleList(){
     if (at>=pauses.size())
@@ -411,26 +426,34 @@ void loop1(){
     const Uint8* keys=SDL_GetKeyboardState(NULL);
 
     if (keys[SDL_SCANCODE_W]){
-        if (keys[dashBut] && !(keydownDASH))
+        if (keys[dashBut] && !(keydownDASH)){
             player.y-=plr_dsh_speed*dt;
+            enemies1.push_back(new Trail(player));
+        }
         else
             player.y-=plr_speed*dt;
     }
     if (keys[SDL_SCANCODE_S]){
-        if (keys[dashBut] && !(keydownDASH))
+        if (keys[dashBut] && !(keydownDASH)){
             player.y+=plr_dsh_speed*dt;
+            enemies1.push_back(new Trail(player));
+        }
         else
             player.y+=plr_speed*dt;
     }
     if (keys[SDL_SCANCODE_A]){
-        if (keys[dashBut] && !(keydownDASH))
+        if (keys[dashBut] && !(keydownDASH)){
             player.x-=plr_dsh_speed*dt;
+            enemies1.push_back(new Trail(player));
+        }
         else
             player.x-=plr_speed*dt;
     }
     if (keys[SDL_SCANCODE_D]){
-        if (keys[dashBut] && !(keydownDASH))
+        if (keys[dashBut] && !(keydownDASH)){
             player.x+=plr_dsh_speed*dt;
+            enemies1.push_back(new Trail(player));
+        }
         else
             player.x+=plr_speed*dt;
     }

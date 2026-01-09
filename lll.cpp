@@ -80,30 +80,20 @@ bool move(SDL_FRect* rect, int targetX, int targetY, float speed, float delta) {
 
 //delta in secs, speed pixs per sec
 void plush(SDL_FRect* rect,float tw,float th,float speed,float delta){
-    float dw=rect->w-tw;
-    float dh=rect->h-th;
-    float x=dw>0 ? -(speed*delta) : speed*delta;
-    float y=dh>0 ? -(speed*delta) : speed*delta;
+    if (!rect) return;
 
-    bool ret=false;
+    float k = speed * delta;
 
-    if (abs(dw)<=speed*delta){
-        rect->w=tw;
-        ret=true;
-    }
+    if (k > 1.0f) k = 1.0f;
 
-    if (abs(dh)<=speed*delta){
-        rect->h=th;
-        ret=true;
-    }
+    float cx = rect->x + rect->w * 0.5f;
+    float cy = rect->y + rect->h * 0.5f;
 
-    if (ret) return;
+    rect->w += (tw - rect->w) * k;
+    rect->h += (th - rect->h) * k;
 
-    rect->x-=x/2;
-    rect->y+=y/2;
-
-    rect->w-=x;
-    rect->h-=y;
+    rect->x = cx - rect->w * 0.5f;
+    rect->y = cy - rect->h * 0.5f;
 }
 
 template <typename T>
@@ -456,36 +446,36 @@ void loop1(){
 
     if (keys[SDL_SCANCODE_W]){
         if (keys[dashBut] && !(keydownDASH)){
-            plush(&player,25,75,1000,dt);
             player.y-=plr_dsh_speed*dt;
             enemies1.push_back(new Trail(player));
+            plush(&player,25,75,1000,dt);
         }
         else
             player.y-=plr_speed*dt;
     }
     if (keys[SDL_SCANCODE_S]){
         if (keys[dashBut] && !(keydownDASH)){
-            plush(&player,25,75,1000,dt);
             player.y+=plr_dsh_speed*dt;
             enemies1.push_back(new Trail(player));
+            plush(&player,25,75,1000,dt);
         }
         else
             player.y+=plr_speed*dt;
     }
     if (keys[SDL_SCANCODE_A]){
         if (keys[dashBut] && !(keydownDASH)){
-            plush(&player,75,25,1000,dt);
             player.x-=plr_dsh_speed*dt;
             enemies1.push_back(new Trail(player));
+            plush(&player,75,25,1000,dt);
         }
         else
             player.x-=plr_speed*dt;
     }
     if (keys[SDL_SCANCODE_D]){
         if (keys[dashBut] && !(keydownDASH)){
-            plush(&player,75,25,1000,dt);
             player.x+=plr_dsh_speed*dt;
             enemies1.push_back(new Trail(player));
+            plush(&player,75,25,1000,dt);
         }
         else
             player.x+=plr_speed*dt;

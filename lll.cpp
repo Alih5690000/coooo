@@ -77,6 +77,35 @@ bool move(SDL_FRect* rect, int targetX, int targetY, float speed, float delta) {
     return true;
 }
 
+
+//delta in secs, speed pixs per sec
+void plush(SDL_FRect* rect,float tw,float th,float speed,float delta){
+    float dw=rect->w-tw;
+    float dh=rect->h-th;
+    int x=dw>0 ? -(speed*delta) : speed*delta;
+    int y=dh>0 ? -(speed*delta) : speed*delta;
+
+    bool ret=false;
+
+    if (dw<=speed*delta){
+        rect->w=tw;
+        ret=true;
+    }
+
+    if (dh<=speed*delta){
+        rect->h=th;
+        ret=true;
+    }
+
+    if (ret) return;
+
+    rect->x-=x/2;
+    rect->y+=y/2;
+
+    rect->w+=x;
+    rect->h+=y;
+}
+
 template <typename T>
 std::string to_str(T a){
     std::stringstream s;
@@ -427,6 +456,7 @@ void loop1(){
 
     if (keys[SDL_SCANCODE_W]){
         if (keys[dashBut] && !(keydownDASH)){
+            plush(&player,25,75,1000,dt);
             player.y-=plr_dsh_speed*dt;
             enemies1.push_back(new Trail(player));
         }
@@ -435,6 +465,7 @@ void loop1(){
     }
     if (keys[SDL_SCANCODE_S]){
         if (keys[dashBut] && !(keydownDASH)){
+            plush(&player,25,75,1000,dt);
             player.y+=plr_dsh_speed*dt;
             enemies1.push_back(new Trail(player));
         }
@@ -443,6 +474,7 @@ void loop1(){
     }
     if (keys[SDL_SCANCODE_A]){
         if (keys[dashBut] && !(keydownDASH)){
+            plush(&player,75,25,1000,dt);
             player.x-=plr_dsh_speed*dt;
             enemies1.push_back(new Trail(player));
         }
@@ -451,6 +483,7 @@ void loop1(){
     }
     if (keys[SDL_SCANCODE_D]){
         if (keys[dashBut] && !(keydownDASH)){
+            plush(&player,75,25,1000,dt);
             player.x+=plr_dsh_speed*dt;
             enemies1.push_back(new Trail(player));
         }
@@ -473,6 +506,8 @@ void loop1(){
         player.y=800-player.h;
     if (player.y<0)
         player.y=0;
+
+    plush(&player,50,50,200,dt);
 
     SDL_Event e;
     while (SDL_PollEvent(&e)){

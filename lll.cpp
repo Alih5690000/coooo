@@ -83,6 +83,8 @@ void plush(SDL_FRect* rect,float tw,float th,float speed,float delta){
     if (!rect) return;
 
     float k = speed * delta;
+
+    if (k>1.f) k=1.f;
     
     float cx = rect->x + rect->w * 0.5f;
     float cy = rect->y + rect->h * 0.5f;

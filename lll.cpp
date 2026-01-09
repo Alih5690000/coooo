@@ -82,17 +82,17 @@ bool move(SDL_FRect* rect, int targetX, int targetY, float speed, float delta) {
 void plush(SDL_FRect* rect,float tw,float th,float speed,float delta){
     float dw=rect->w-tw;
     float dh=rect->h-th;
-    int x=dw>0 ? -(speed*delta) : speed*delta;
-    int y=dh>0 ? -(speed*delta) : speed*delta;
+    float x=dw>0 ? -(speed*delta) : speed*delta;
+    float y=dh>0 ? -(speed*delta) : speed*delta;
 
     bool ret=false;
 
-    if (dw<=speed*delta){
+    if (abs(dw)<=speed*delta){
         rect->w=tw;
         ret=true;
     }
 
-    if (dh<=speed*delta){
+    if (abs(dh)<=speed*delta){
         rect->h=th;
         ret=true;
     }
@@ -102,8 +102,8 @@ void plush(SDL_FRect* rect,float tw,float th,float speed,float delta){
     rect->x-=x/2;
     rect->y+=y/2;
 
-    rect->w+=x;
-    rect->h+=y;
+    rect->w-=x;
+    rect->h-=y;
 }
 
 template <typename T>

@@ -78,24 +78,33 @@ bool move(SDL_FRect* rect, int targetX, int targetY, float speed, float delta) {
 }
 
 
-//delta in secs, speed pixs per sec
-void plush(SDL_FRect* rect,float tw,float th,float speed,float delta){
+static float approach(float cur, float target, float maxStep)
+{
+    float d = target - cur;
+    if (fabsf(d) <= maxStep) return target;
+    return cur + (d > 0.f ? maxStep : -maxStep);
+}
+
+// speed = pixels per second (REAL)
+void plush(SDL_FRect* rect,
+           float tw,
+           float th,
+           float speed,
+           float delta)
+{
     if (!rect) return;
 
-    float k = speed * delta;
-
-    if (k>1.f) k=1.f;
-    
     float cx = rect->x + rect->w * 0.5f;
     float cy = rect->y + rect->h * 0.5f;
 
-    rect->w += (tw - rect->w) * k;
-    rect->h += (th - rect->h) * k;
+    float step = speed * delta;
+
+    rect->w = approach(rect->w, tw, step);
+    rect->h = approach(rect->h, th, step);
 
     rect->x = cx - rect->w * 0.5f;
     rect->y = cy - rect->h * 0.5f;
 }
-
 template <typename T>
 std::string to_str(T a){
     std::stringstream s;

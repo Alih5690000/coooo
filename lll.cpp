@@ -374,7 +374,7 @@ void HandleList(){
     if (at>=pauses.size())
         return;
     if (start-last_time>curr_interval){
-        enemies1.push_back((*(objs[at]))() );
+        enemies1.push_back((*objs)[at]());
         last_time=start;
         curr_interval=pauses[at];
         at++;

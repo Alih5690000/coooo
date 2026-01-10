@@ -41,7 +41,7 @@ float dmg_cd=0.f;
 int lives=5;
 SDL_FRect player{100,100,50,50};
 int plr_speed=300;
-int plr_dsh_speed=10000;
+int plr_dsh_speed=150;
 SDL_Window* window;
 SDL_Renderer* renderer;
 
@@ -104,6 +104,7 @@ void plush(SDL_FRect* rect,
 
     rect->x = cx - rect->w * 0.5f;
     rect->y = cy - rect->h * 0.5f;
+
 }
 template <typename T>
 std::string to_str(T a){
@@ -453,38 +454,41 @@ void loop1(){
     if (dmg_cd<0) dmg_cd=0;
     const Uint8* keys=SDL_GetKeyboardState(NULL);
 
+    const float dsh_w=75;
+    const float dsh_h=25;
+
     if (keys[SDL_SCANCODE_W]){
         if (keys[dashBut] && !(keydownDASH)){
-            player.y-=plr_dsh_speed*dt;
+            player.y-=plr_dsh_speed;
             enemies1.push_back(new Trail(player));
-            plush(&player,25,75,1000,dt);
+            plush(&player,dsh_h,dsh_w,1000,dt);
         }
         else
             player.y-=plr_speed*dt;
     }
     if (keys[SDL_SCANCODE_S]){
         if (keys[dashBut] && !(keydownDASH)){
-            player.y+=plr_dsh_speed*dt;
+            player.y+=plr_dsh_speed;
             enemies1.push_back(new Trail(player));
-            plush(&player,25,75,1000,dt);
+            plush(&player,dsh_h,dsh_w,1000,dt);
         }
         else
             player.y+=plr_speed*dt;
     }
     if (keys[SDL_SCANCODE_A]){
         if (keys[dashBut] && !(keydownDASH)){
-            player.x-=plr_dsh_speed*dt;
+            player.x-=plr_dsh_speed;
             enemies1.push_back(new Trail(player));
-            plush(&player,75,25,1000,dt);
+            plush(&player,dsh_w,dsh_h,1000,dt);
         }
         else
             player.x-=plr_speed*dt;
     }
     if (keys[SDL_SCANCODE_D]){
         if (keys[dashBut] && !(keydownDASH)){
-            player.x+=plr_dsh_speed*dt;
+            player.x+=plr_dsh_speed;
             enemies1.push_back(new Trail(player));
-            plush(&player,75,25,1000,dt);
+            plush(&player,dsh_w,dsh_h,1000,dt);
         }
         else
             player.x+=plr_speed*dt;
@@ -506,7 +510,7 @@ void loop1(){
     if (player.y<0)
         player.y=0;
 
-    plush(&player,50,50,200,dt);
+    plush(&player,50,50,75,dt);
 
     SDL_Event e;
     while (SDL_PollEvent(&e)){

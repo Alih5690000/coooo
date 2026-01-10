@@ -342,7 +342,7 @@ void GameOver(){
 
 std::vector<int> pauses;
 
-std::vector<Enemy*> objs;
+std::vector<std::function<Enemy*()>> objs;
 
 std::vector<int> pauses1={
     1000,

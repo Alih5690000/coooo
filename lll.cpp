@@ -301,6 +301,7 @@ class Custom : public Enemy{
         c(this);
     }
     void update() override{
+        Handle() ;
         updatefunc(this);
     }
 };
@@ -349,17 +350,19 @@ std::vector<int> pauses1={
     700
 };
 
-std::vector<Enemy*> objs1={
-    new Enemy,
+std::vector<std::function<Enemy*() >> objs1={
+    [] () {return new Enemy;} ,
     [](){
         Ball* u=new Ball({{-1,2000},{200,200}},0);
         u->ndmgAlpha=0;
         return (Enemy*)u;
     }(),
-    new Ball({{-1,2000},{100,100}},0)
+    [] () {
+        return new Ball({{-1,2000},{100,100}},0)
+    } 
 };
 
-std::vector<std::tuple<std::vector<int>,std::vector<Enemy*>,Mix_Music*>> levels={{pauses1,objs1,l1_mus1}};
+std::vector<std::tuple<std::vector<int>,std::vector<std::function<Enemy*() >>,Mix_Music*>> levels={{pauses1,objs1,l1_mus1}};
 int current_level=0;
 
 int curr_interval=0;
@@ -370,7 +373,7 @@ void HandleList(){
     if (at>=pauses.size())
         return;
     if (start-last_time>curr_interval){
-        enemies1.push_back(objs[at]);
+        enemies1.push_back(objs[at]() );
         last_time=start;
         curr_interval=pauses[at];
         at++;

@@ -10,6 +10,7 @@
 #include <sstream>
 #include <map>
 #include <any>
+#include <cmath>
 #include <memory>
 //#define emscripten_cancel_main_loop() currloop=close
 //#define emscripten_set_main_loop(a,b,c) currloop=a
@@ -342,7 +343,7 @@ void GameOver(){
 
 std::vector<int> pauses;
 
-std::vector<std::function<Enemy*()>> objs;
+std::vector<std::function<Enemy*()>>* objs;
 
 std::vector<int> pauses1={
     1000,
@@ -356,13 +357,13 @@ std::vector<std::function<Enemy*() >> objs1={
         Ball* u=new Ball({{-1,2000},{200,200}},0);
         u->ndmgAlpha=0;
         return (Enemy*)u;
-    }(),
+    },
     [] () {
-        return new Ball({{-1,2000},{100,100}},0)
+        return (Enemy*)(new Ball({{-1,2000},{100,100}},0));
     } 
 };
 
-std::vector<std::tuple<std::vector<int>,std::vector<std::function<Enemy*() >>,Mix_Music*>> levels={{pauses1,objs1,l1_mus1}};
+std::vector<std::tuple<std::vector<int>,std::vector<std::function<Enemy*()>>,Mix_Music*>> levels={{pauses1,objs1,l1_mus1}};
 int current_level=0;
 
 int curr_interval=0;
@@ -373,7 +374,7 @@ void HandleList(){
     if (at>=pauses.size())
         return;
     if (start-last_time>curr_interval){
-        enemies1.push_back(objs[at]() );
+        enemies1.push_back((*(objs[at]))() );
         last_time=start;
         curr_interval=pauses[at];
         at++;
@@ -585,7 +586,7 @@ void switch_level(int no){
     current_level=no;
     Mix_PlayMusic(std::get<2>(levels[current_level]),0);
     pauses=std::get<0>(levels[current_level]);
-    objs=std::get<1>(levels[current_level]);
+    objs=&(std::get<1>(levels[current_level]));
     at=0;
 }
 

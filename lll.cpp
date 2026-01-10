@@ -6,6 +6,7 @@
 #include <emscripten.h>
 #include <iostream>
 #include <ctime>
+#include <functional>
 #include <sstream>
 #include <map>
 #include <any>

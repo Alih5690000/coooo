@@ -582,6 +582,7 @@ void loop1(){
 }
 
 void switch_level(int no){
+    for (auto i:enemies1) delete i;
     Mix_HaltMusic();
     current_level=no;
     Mix_PlayMusic(std::get<2>(levels[current_level]),0);

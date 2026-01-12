@@ -3,7 +3,7 @@
 #include <SDL2/SDL_mixer.h>
 #include <vector>
 #include <utility>
-#include <emscripten.h>
+#include <emscripten/html5.h>
 #include <iostream>
 #include <ctime>
 #include <functional>
@@ -48,6 +48,7 @@ int plr_speed=300;
 int plr_dsh_speed=150;
 SDL_Window* window;
 SDL_Renderer* renderer;
+SDL_Texture* textureW;
 
 TTF_Font* arial;
 SDL_Texture* GameOver_txt;
@@ -309,6 +310,12 @@ class Custom : public Enemy{
     }
 };
 
+inline void UpdateRenderer(){
+    SDL_SetRenderTarget(renderer,NULL);
+    SDL_RenderCopy(renderer,textureW,NULL,NULL);
+    SDL_SetRenderTarget(renderer,textureW);
+}
+
 std::vector<Enemy*> enemies1;
 
 void HandleDelta(){
@@ -341,6 +348,7 @@ void GameOver(){
         SDL_RenderCopy(renderer,GameOver_txt,nullptr,&rect);
     }
     SDL_RenderPresent(renderer);
+    UpdateRenderer();
 }
 
 std::vector<int> pauses;
@@ -365,7 +373,7 @@ std::vector<std::function<Enemy*() >> objs1={
     } 
 };
 
-std::vector<std::tuple<std::vector<int>,std::vector<std::function<Enemy*()>>,Mix_Music*>> levels={{pauses1,objs1,l1_mus1}};
+std::vector<std::tuple<std::vector<int>,std::vector<std::function<Enemy*()>>,Mix_Music**>> levels={{pauses1,objs1,&l1_mus1}};
 int current_level=0;
 
 int curr_interval=0;
@@ -383,20 +391,34 @@ void HandleList(){
     }
 }
 
+Uint8 GetMouse(int* x,int* y){
+    int mx,my;
+    Uint8 res=SDL_GetMouseState(&mx,&my);
+    int rw, rh;
+    SDL_GetWindowSize(window, &rw, &rh);
+    *x=(mx*1000/rw);
+    *y=(my*800/rh);
+    return res;
+}
+
 float settings_volume=64.f;
 SDL_Rect settings_volume_up{200,200,100,100};
 SDL_Rect settings_volume_down{200,400,100,100};
 std::vector<SDL_Rect> settings_buttons={settings_volume_up,settings_volume_down};
+bool settings_fullscreen=false;
+SDL_Rect settings_fullscreen_rect{500,100,100,100};
+bool settings_isMouseDown=false;
+bool settings_isMousePressedFirstFrame=true;;
 void settings(){
     int x,y;
-    Uint8 mstate=SDL_GetMouseState(&x,&y);
+    Uint8 mstate=GetMouse(&x,&y);
     HandleDelta();
     SDL_Event e;
     while (SDL_PollEvent(&e)){
         if (e.type==SDL_QUIT)
             emscripten_cancel_main_loop();
         if (e.type==SDL_KEYDOWN)
-            if (e.key.keysym.sym==SDLK_ESCAPE){
+            if (e.key.keysym.sym==SDLK_F1){
                 Mix_VolumeMusic((int)settings_volume);
                 Mix_ResumeMusic();
                 switch_loop(lastloop);
@@ -408,6 +430,18 @@ void settings(){
     if (settings_volume<0) settings_volume=0;
     if (settings_volume>128) settings_volume=128;
 
+    if ((mstate & SDL_BUTTON_LMASK) && settings_isMousePressedFirstFrame){
+        settings_isMouseDown=true;
+        settings_isMousePressedFirstFrame=false;
+    }
+    else{
+        settings_isMouseDown=false;
+    }
+    if (!(mstate & SDL_BUTTON_LMASK)){
+        settings_isMouseDown=false;
+        settings_isMousePressedFirstFrame=true;
+    }
+
     SDL_Rect tchrect{x,y,1,1};
     if (SDL_HasIntersection(&settings_volume_down,&tchrect) && (mstate & SDL_BUTTON_LMASK)){
         settings_volume-=dt*30;
@@ -417,6 +451,22 @@ void settings(){
         settings_volume+=dt*30;
         Mix_VolumeMusic((int)settings_volume);
     }
+    if (SDL_HasIntersection(&settings_fullscreen_rect,&tchrect) && settings_isMouseDown){
+        settings_fullscreen=!settings_fullscreen;
+        if  (settings_fullscreen){
+            emscripten_request_fullscreen("#canvas",0);
+        }
+        else{ 
+            emscripten_exit_fullscreen();
+        }
+    }
+    if  (settings_fullscreen){
+        SDL_SetRenderDrawColor(renderer,0,255,0,255);
+    }
+    else{ 
+        SDL_SetRenderDrawColor(renderer,255,0,0,255);
+    }
+    SDL_RenderFillRect(renderer,&settings_fullscreen_rect);
 
     SDL_Rect sound_rect1{200, 100, 128 * 2, 50};
 
@@ -443,6 +493,7 @@ void settings(){
     SDL_Rect r1{200,100,200,100};
     
     SDL_RenderPresent(renderer);
+    UpdateRenderer();
 }
 
 void loop1(){
@@ -524,7 +575,7 @@ void loop1(){
         if (e.type==SDL_QUIT)
             emscripten_cancel_main_loop();
         if (e.type==SDL_KEYDOWN)
-            if (e.key.keysym.sym==SDLK_ESCAPE){
+            if (e.key.keysym.sym==SDLK_F1){
                 Mix_PauseMusic();
                 switch_loop(settings);
             }
@@ -581,13 +632,16 @@ void loop1(){
     */
 
     SDL_RenderPresent(renderer);
+    UpdateRenderer();
 }
 
 void switch_level(int no){
     for (auto i:enemies1) delete i;
     Mix_HaltMusic();
     current_level=no;
-    Mix_PlayMusic(std::get<2>(levels[current_level]),0);
+    if (Mix_PlayMusic(*(std::get<2>(levels[current_level])),-1) == -1) {
+        std::cout << "Mix_PlayMusic error: " << Mix_GetError() << std::endl;
+    }
     pauses=std::get<0>(levels[current_level]);
     objs=&(std::get<1>(levels[current_level]));
     at=0;
@@ -632,7 +686,9 @@ int main(){
         std::cout<<"COULDNT LOAD MUSIC CAUSE:"<<Mix_GetError()<<std::endl;
         return 1;
     }
-    
+    textureW=SDL_CreateTexture(renderer,SDL_PIXELFORMAT_RGBA8888,SDL_TEXTUREACCESS_TARGET,1000,800);
+    SDL_SetRenderTarget(renderer,textureW);
+
     switch_level(0);
     emscripten_set_main_loop(loop,0,1);
     return 0;

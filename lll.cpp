@@ -19,6 +19,8 @@
 //1 minute later
 //is that my blood?..
 
+//works
+
 int WAIT_TIME=1000;
 
 void (*lastloop)();

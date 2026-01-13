@@ -413,7 +413,8 @@ void Empty(){}
 struct Button{
     SDL_FRect rect;
     std::function<void()> onPressed=Empty;
-    Button(std::function<void()> f,SDL_FRect r) : onPressed(f),rect(r){}
+    std::function<void()> Draw=Empty;
+    Button(std::function<void()> f,std::function<void()> d,SDL_FRect r) : onPressed(f),Draw(d),rect(r){}
 };
 
 float settings_volume=64.f;
@@ -425,8 +426,8 @@ bool settings_isMouseDown=false;
 bool settings_isMousePressedFirstFrame=true;
 int settings_buttNo=0;
 std::vector<Button> settings_buttons={
-    Button{[](){settings_volume-=dt*30;Mix_VolumeMusic((int)settings_volume);},settings_volume_down},
-    Button{[](){settings_volume+=dt*30;Mix_VolumeMusic((int)settings_volume);},settings_volume_up},
+    Button{[](){settings_volume-=dt*30;Mix_VolumeMusic((int)settings_volume);},[](){SDL_SetRenderDrawColor(renderer,100,100,100,255);SDL_RenderFillRect(renderer,&settings_volume_down);},settings_volume_down},
+    Button{[](){settings_volume+=dt*30;Mix_VolumeMusic((int)settings_volume);},[](){SDL_SetRenderDrawColor(renderer,100,100,100,255);SDL_RenderFillRect(renderer,&settings_volume_up);},settings_volume_up},
     Button{[](){
         settings_fullscreen=!settings_fullscreen;
         if  (settings_fullscreen){
@@ -435,6 +436,11 @@ std::vector<Button> settings_buttons={
         else{ 
             emscripten_exit_fullscreen();
         }
+    }
+    [](){
+        if (settings_fullscreen) SDL_SetRenderDrawColor(renderer,0,255,0,255);
+        else SDL_SetRenderDrawColor(renderer,255,0,0,255);
+        SDL_RenderFillRect(renderer,&settings_fullscreen_rect);
     },settings_fullscreen_rect}
 };
 
@@ -491,7 +497,7 @@ void settings(){
     SDL_SetRenderDrawColor(renderer,100,100,100,255);
 
     for (auto& i:settings_buttons)
-        SDL_RenderFillRectF(renderer,&i.rect);
+        i.Draw();
     
     SDL_SetRenderDrawColor(renderer,255,255,255,255);
     DrawThickFRect(settings_buttons[settings_buttNo].rect,10);

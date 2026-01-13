@@ -12,6 +12,7 @@
 #include <any>
 #include <cmath>
 #include <memory>
+#define LINE_OFFSET 150
 //#define emscripten_cancel_main_loop() currloop=close
 //#define emscripten_set_main_loop(a,b,c) currloop=a
 
@@ -111,6 +112,22 @@ void plush(SDL_FRect* rect,
     rect->y = cy - rect->h * 0.5f;
 
 }
+
+void DrawThickFRect(SDL_FRect rect, float thickness) {
+    SDL_FRect top{rect.x, rect.y, rect.w, thickness};
+    SDL_RenderFillRectF(renderer, &top);
+
+    SDL_FRect bottom{rect.x, rect.y + rect.h - thickness, rect.w, thickness};
+    SDL_RenderFillRectF(renderer, &bottom);
+
+    SDL_FRect left{rect.x, rect.y, thickness, rect.h};
+    SDL_RenderFillRectF(renderer, &left);
+
+    SDL_FRect right{rect.x + rect.w - thickness, rect.y, thickness, rect.h};
+    SDL_RenderFillRectF(renderer, &right);
+}
+
+
 template <typename T>
 std::string to_str(T a){
     std::stringstream s;
@@ -391,29 +408,40 @@ void HandleList(){
     }
 }
 
-Uint8 GetMouse(int* x,int* y){
-    int mx,my;
-    Uint8 res=SDL_GetMouseState(&mx,&my);
-    int rw, rh;
-    SDL_GetWindowSize(window, &rw, &rh);
-    *x=(mx*1000/rw);
-    *y=(my*800/rh);
-    return res;
-}
+void Empty(){}
+
+struct Button{
+    SDL_FRect rect;
+    std::function<void()> onPressed=Empty;
+    Button(std::function<void()> f,SDL_FRect r) : onPressed(f),rect(r){}
+};
 
 float settings_volume=64.f;
-SDL_Rect settings_volume_up{200,200,100,100};
-SDL_Rect settings_volume_down{200,400,100,100};
-std::vector<SDL_Rect> settings_buttons={settings_volume_up,settings_volume_down};
+SDL_FRect settings_volume_up{200,200,100,100};
+SDL_FRect settings_volume_down{200,400,100,100};
 bool settings_fullscreen=false;
-SDL_Rect settings_fullscreen_rect{500,100,100,100};
+SDL_FRect settings_fullscreen_rect{500,100,100,100};
 bool settings_isMouseDown=false;
-bool settings_isMousePressedFirstFrame=true;;
+bool settings_isMousePressedFirstFrame=true;
+int settings_buttNo=0;
+std::vector<Button> settings_buttons={
+    Button{[](){settings_volume-=dt*30;Mix_VolumeMusic((int)settings_volume);},settings_volume_down},
+    Button{[](){settings_volume+=dt*30;Mix_VolumeMusic((int)settings_volume);},settings_volume_up},
+    Button{[](){
+        settings_fullscreen=!settings_fullscreen;
+        if  (settings_fullscreen){
+            emscripten_request_fullscreen("#canvas",0);
+        }
+        else{ 
+            emscripten_exit_fullscreen();
+        }
+    },settings_fullscreen_rect}
+};
+
 void settings(){
-    int x,y;
-    Uint8 mstate=GetMouse(&x,&y);
     HandleDelta();
     SDL_Event e;
+    const Uint8* keys=SDL_GetKeyboardState(NULL);
     while (SDL_PollEvent(&e)){
         if (e.type==SDL_QUIT)
             emscripten_cancel_main_loop();
@@ -423,50 +451,25 @@ void settings(){
                 Mix_ResumeMusic();
                 switch_loop(lastloop);
             }
+        if (e.type==SDL_KEYDOWN)
+            if (e.key.keysym.sym==SDLK_UP){
+                settings_buttNo+=1;
+                if (settings_buttNo>=settings_buttons.size()) settings_buttNo=settings_buttons.size()-1;
+            }
+        if (e.type==SDL_KEYDOWN)
+            if (e.key.keysym.sym==SDLK_DOWN){
+                settings_buttNo-=1;
+                if (settings_buttNo<0) settings_buttNo=0;
+            }
+        if (e.type==SDL_KEYDOWN)
+            if (e.key.keysym.sym==SDLK_KP_ENTER)
+                settings_buttons[settings_buttNo].onPressed();
     }
     SDL_SetRenderDrawColor(renderer,0,0,0,255);
     SDL_RenderClear(renderer);
 
     if (settings_volume<0) settings_volume=0;
     if (settings_volume>128) settings_volume=128;
-
-    if ((mstate & SDL_BUTTON_LMASK) && settings_isMousePressedFirstFrame){
-        settings_isMouseDown=true;
-        settings_isMousePressedFirstFrame=false;
-    }
-    else{
-        settings_isMouseDown=false;
-    }
-    if (!(mstate & SDL_BUTTON_LMASK)){
-        settings_isMouseDown=false;
-        settings_isMousePressedFirstFrame=true;
-    }
-
-    SDL_Rect tchrect{x,y,1,1};
-    if (SDL_HasIntersection(&settings_volume_down,&tchrect) && (mstate & SDL_BUTTON_LMASK)){
-        settings_volume-=dt*30;
-        Mix_VolumeMusic((int)settings_volume);
-    }
-    if (SDL_HasIntersection(&settings_volume_up,&tchrect) && (mstate & SDL_BUTTON_LMASK)){
-        settings_volume+=dt*30;
-        Mix_VolumeMusic((int)settings_volume);
-    }
-    if (SDL_HasIntersection(&settings_fullscreen_rect,&tchrect) && settings_isMouseDown){
-        settings_fullscreen=!settings_fullscreen;
-        if  (settings_fullscreen){
-            emscripten_request_fullscreen("#canvas",0);
-        }
-        else{ 
-            emscripten_exit_fullscreen();
-        }
-    }
-    if  (settings_fullscreen){
-        SDL_SetRenderDrawColor(renderer,0,255,0,255);
-    }
-    else{ 
-        SDL_SetRenderDrawColor(renderer,255,0,0,255);
-    }
-    SDL_RenderFillRect(renderer,&settings_fullscreen_rect);
 
     SDL_Rect sound_rect1{200, 100, 128 * 2, 50};
 
@@ -488,10 +491,11 @@ void settings(){
     SDL_SetRenderDrawColor(renderer,100,100,100,255);
 
     for (auto& i:settings_buttons)
-        SDL_RenderFillRect(renderer,&i);
-
-    SDL_Rect r1{200,100,200,100};
+        SDL_RenderFillRectF(renderer,&i.rect);
     
+    SDL_SetRenderDrawColor(renderer,255,255,255,255);
+    DrawThickFRect(settings_buttons[settings_buttNo].rect,10);
+
     SDL_RenderPresent(renderer);
     UpdateRenderer();
 }
@@ -581,7 +585,7 @@ void loop1(){
             }
     }
 
-    SDL_SetRenderDrawColor(renderer,0,0,0,255);
+    SDL_SetRenderDrawColor(renderer,0,0,50,255);
     SDL_RenderClear(renderer);
 
     if (dmg_cd==0)

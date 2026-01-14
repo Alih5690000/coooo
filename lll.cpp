@@ -426,8 +426,8 @@ bool settings_isMouseDown=false;
 bool settings_isMousePressedFirstFrame=true;
 int settings_buttNo=0;
 std::vector<Button> settings_buttons={
-    Button{[](){settings_volume-=dt*30;Mix_VolumeMusic((int)settings_volume);},[](){SDL_SetRenderDrawColor(renderer,100,100,100,255);SDL_RenderFillRect(renderer,&settings_volume_down);},settings_volume_down},
-    Button{[](){settings_volume+=dt*30;Mix_VolumeMusic((int)settings_volume);},[](){SDL_SetRenderDrawColor(renderer,100,100,100,255);SDL_RenderFillRect(renderer,&settings_volume_up);},settings_volume_up},
+    Button{[](){settings_volume-=dt*30;Mix_VolumeMusic((int)settings_volume);},[](){SDL_SetRenderDrawColor(renderer,100,100,100,255);SDL_RenderFillRectF(renderer,&settings_volume_down);},settings_volume_down},
+    Button{[](){settings_volume+=dt*30;Mix_VolumeMusic((int)settings_volume);},[](){SDL_SetRenderDrawColor(renderer,100,100,100,255);SDL_RenderFillRectF(renderer,&settings_volume_up);},settings_volume_up},
     Button{[](){
         settings_fullscreen=!settings_fullscreen;
         if  (settings_fullscreen){
@@ -436,11 +436,11 @@ std::vector<Button> settings_buttons={
         else{ 
             emscripten_exit_fullscreen();
         }
-    }
+    },
     [](){
         if (settings_fullscreen) SDL_SetRenderDrawColor(renderer,0,255,0,255);
         else SDL_SetRenderDrawColor(renderer,255,0,0,255);
-        SDL_RenderFillRect(renderer,&settings_fullscreen_rect);
+        SDL_RenderFillRectF(renderer,&settings_fullscreen_rect);
     },settings_fullscreen_rect}
 };
 

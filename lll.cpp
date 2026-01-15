@@ -393,19 +393,20 @@ std::vector<std::function<Enemy*() >> objs1={
 std::vector<std::tuple<std::vector<int>,std::vector<std::function<Enemy*()>>,Mix_Music**>> levels={{pauses1,objs1,&l1_mus1}};
 int current_level=0;
 
-int curr_interval=0;
-int last_time=0;
+int lasts=0;
 int at=0;
 
-void HandleList(){
+bool HandleList(){
+    if (lasts>0) lasts-=dt*1000;
+    lasts-=dt*1000;
     if (at>=pauses.size())
-        return;
-    if (start-last_time>curr_interval){
+        return false;
+    if (lasts<=0){
         enemies1.push_back((*objs)[at]());
-        last_time=start;
-        curr_interval=pauses[at];
+        lasts=pausese[at];
         at++;
     }
+    return true;
 }
 
 void Empty(){}

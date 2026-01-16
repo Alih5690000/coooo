@@ -403,12 +403,10 @@ int HandleList(){
     if (Mix_GetMusicPosition(mus)-last_time<curr_interval) return 0;
     if (at>=pauses.size())
         return -1;
-    if (lasts<=0){
-        enemies1.push_back((*objs)[at]());
-        curr_interval=pauses[at]/1000.f;
-        last_time=Mix_GetMusicPosition(mus);
-        at++;
-    }
+    enemies1.push_back((*objs)[at]());
+    curr_interval=pauses[at]/1000.f;
+    last_time=Mix_GetMusicPosition(mus);
+    at++;
     return 0;
 }
 

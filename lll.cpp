@@ -372,6 +372,8 @@ std::vector<int> pauses;
 
 std::vector<std::function<Enemy*()>>* objs;
 
+Mix_Music* mus;
+
 std::vector<int> pauses1={
     1000,
     2000,
@@ -393,20 +395,21 @@ std::vector<std::function<Enemy*() >> objs1={
 std::vector<std::tuple<std::vector<int>,std::vector<std::function<Enemy*()>>,Mix_Music**>> levels={{pauses1,objs1,&l1_mus1}};
 int current_level=0;
 
-int lasts=0;
+int last_time=Mix_GetMusicPosition(mus);
+int curr_interval=0;
 int at=0;
 
-bool HandleList(){
-    if (lasts>0) lasts-=dt*1000;
-    lasts-=dt*1000;
+int HandleList(){
+    if (Mix_GetMusicPosition(mus)-last_time<curr_interval) return 0;
     if (at>=pauses.size())
-        return false;
+        return -1;
     if (lasts<=0){
         enemies1.push_back((*objs)[at]());
-        lasts=pausese[at];
+        curr_interval=pauses[at]/1000.f;
+        last_time=Mix_GetMusicPosition(mus);
         at++;
     }
-    return true;
+    return 0;
 }
 
 void Empty(){}
@@ -655,6 +658,7 @@ void switch_level(int no){
     }
     pauses=std::get<0>(levels[current_level]);
     objs=&(std::get<1>(levels[current_level]));
+    mus=*std::get<2>(levels[current_level]);
     at=0;
 }
 

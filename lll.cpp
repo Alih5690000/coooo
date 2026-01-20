@@ -375,21 +375,75 @@ std::vector<std::function<Enemy*()>>* objs;
 Mix_Music* mus;
 
 std::vector<int> pauses1={
-    1000,
-    2000,
-    700
+    869,
+    626,
+    654,
+    417,
+    669,
+    1711,
+    625,
+    670
 };
 
 std::vector<std::function<Enemy*() >> objs1={
     [] () {return new Enemy;} ,
     [](){
-        Ball* u=new Ball({{-1,2000},{200,200}},0);
+        Ball* u=new Ball({{200,200}},0);
+        u->exMode=true;
+        u->left=1.f;
         u->ndmgAlpha=0;
         return (Enemy*)u;
     },
+
     [] () {
-        return (Enemy*)(new Ball({{-1,2000},{100,100}},0));
-    } 
+        Ball* obj=new Ball({{100,100}},0);
+        obj->exMode=true;
+        obj->left=1.f;
+        return (Enemy*)obj;
+    },
+
+    [] () {
+        Ball* obj=new Ball({{300,200}},0);
+        obj->exMode=true;
+        obj->left=1.f;
+        return (Enemy*)obj;
+    },
+
+    [] () {
+        Ball* obj=new Ball({{500,600}},0);
+        obj->exMode=true;
+        obj->left=1.f;
+        return (Enemy*)obj;
+    },
+
+    [] () {
+        Ball* obj=new Ball({{700,200}},0);
+        obj->exMode=true;
+        obj->left=1.f;
+        return (Enemy*)obj;
+    },
+
+    [] () {
+        Ball* obj=new Ball({{300,500}},0);
+        obj->exMode=true;
+        obj->left=1.f;
+        return (Enemy*)obj;
+    },
+
+    [] () {
+        Ball* obj=new Ball({{500,500}},0);
+        obj->exMode=true;
+        obj->left=1.f;
+        return (Enemy*)obj;
+    },
+
+    [] () {
+        Ball* obj=new Ball({{800,700}},0);
+        obj->exMode=true;
+        obj->left=1.f;
+        return (Enemy*)obj;
+    },
+
 };
 
 std::vector<std::tuple<std::vector<int>,std::vector<std::function<Enemy*()>>,Mix_Music**>> levels={{pauses1,objs1,&l1_mus1}};
@@ -645,6 +699,11 @@ void loop1(){
 
     SDL_RenderPresent(renderer);
     UpdateRenderer();
+}
+
+Uint32 PlayMus(Uint32 interval,void* mus){
+    Mix_PlayMusic((Mix_Music*)mus,-1);
+    return 0;
 }
 
 void switch_level(int no){

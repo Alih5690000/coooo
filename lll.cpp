@@ -462,6 +462,7 @@ int HandleList(){
         current_level++;
         if (current_level>levels.size()) return -1;
         switch_level(current_level);
+        return 0;
     }
     enemies1.push_back((*objs)[at]());
     curr_interval=pauses[at]/1000.f;

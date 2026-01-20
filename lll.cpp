@@ -460,7 +460,7 @@ int HandleList(){
     if (Mix_GetMusicPosition(mus)-last_time<curr_interval) return 0;
     if (at>=pauses.size()){
         current_level++;
-        if (current_level>levels.size()) return -1;
+        if (current_level>=levels.size()) return -1;
         switch_level(current_level);
         return 0;
     }

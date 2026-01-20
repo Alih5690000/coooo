@@ -450,7 +450,7 @@ std::vector<std::tuple<std::vector<int>,std::vector<std::function<Enemy*()>>,Mix
 int current_level=0;
 
 int last_time=0;
-int curr_interval=0;
+float curr_interval=0;
 int at=0;
 
 void switch_level(int no);

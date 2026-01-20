@@ -449,14 +449,20 @@ std::vector<std::function<Enemy*() >> objs1={
 std::vector<std::tuple<std::vector<int>,std::vector<std::function<Enemy*()>>,Mix_Music**>> levels={{pauses1,objs1,&l1_mus1}};
 int current_level=0;
 
-int last_time=Mix_GetMusicPosition(mus);
+int last_time=0;
 int curr_interval=0;
 int at=0;
 
+void switch_level(int no);
+
 int HandleList(){
+    std::cout<<"LOG:"<<Mix_GetMusicPosition(mus)<<std::endl;
     if (Mix_GetMusicPosition(mus)-last_time<curr_interval) return 0;
-    if (at>=pauses.size())
-        return -1;
+    if (at>=pauses.size()){
+        current_level++;
+        if (current_level>levels.size()) return -1;
+        switch_level(current_level);
+    }
     enemies1.push_back((*objs)[at]());
     curr_interval=pauses[at]/1000.f;
     last_time=Mix_GetMusicPosition(mus);
@@ -710,9 +716,7 @@ void switch_level(int no){
     for (auto i:enemies1) delete i;
     Mix_HaltMusic();
     current_level=no;
-    if (Mix_PlayMusic(*(std::get<2>(levels[current_level])),-1) == -1) {
-        std::cout << "Mix_PlayMusic error: " << Mix_GetError() << std::endl;
-    }
+    SDL_AddTimer(1000,PlayMus,*std::get<2>(levels[current_level]));
     pauses=std::get<0>(levels[current_level]);
     objs=&(std::get<1>(levels[current_level]));
     mus=*std::get<2>(levels[current_level]);

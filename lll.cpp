@@ -140,7 +140,7 @@ class Enemy{
     bool active=true;
     bool isDamaging=false;
     bool exMode=false;
-    unsigned char ndmgAlpha=155;
+    unsigned char ndmgAlpha=100;
     float left;
     SDL_FRect rect;
     float ndmg_left=WAIT_TIME/1000.f;

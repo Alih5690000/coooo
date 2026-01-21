@@ -449,15 +449,15 @@ std::vector<std::function<Enemy*() >> objs1={
 std::vector<std::tuple<std::vector<int>,std::vector<std::function<Enemy*()>>,Mix_Music**>> levels={{pauses1,objs1,&l1_mus1}};
 int current_level=0;
 
-int last_time=0;
+float last_time=0;
 float curr_interval=0;
 int at=0;
+float acc=1.f;
 
 void switch_level(int no);
 
 int HandleList(){
-    std::cout<<"LOG:"<<Mix_GetMusicPosition(mus)<<std::endl;
-    if (Mix_GetMusicPosition(mus)-last_time<curr_interval) return 0;
+    if ((SDL_GetTicks()/1000.f)-last_time<curr_interval) return 0;
     if (at>=pauses.size()){
         current_level++;
         if (current_level>=levels.size()) return -1;
@@ -466,7 +466,7 @@ int HandleList(){
     }
     enemies1.push_back((*objs)[at]());
     curr_interval=pauses[at]/1000.f;
-    last_time=Mix_GetMusicPosition(mus);
+    last_time=SDL_GetTicks()/1000.f;
     at++;
     return 0;
 }

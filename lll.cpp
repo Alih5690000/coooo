@@ -455,6 +455,7 @@ void switch_level(int no);
 
 int HandleList(){
     left-=dt;
+    if (left>0) return 1;
     if (at>=pauses.size()){
         current_level++;
         if (current_level>=levels.size()) return -1;
